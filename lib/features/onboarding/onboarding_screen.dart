@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../generated/l10n/app_localizations.dart';
 
@@ -113,7 +114,7 @@ class _SocialSlide extends StatelessWidget {
                     color: AppColors.dark,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.people, color: Colors.white, size: 14),
