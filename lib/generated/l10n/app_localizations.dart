@@ -104,6 +104,18 @@ abstract class AppLocalizations {
   /// **'AFROSTAND'**
   String get appName;
 
+  /// No description provided for @tagline.
+  ///
+  /// In en, this message translates to:
+  /// **'AFRICAN FASHION'**
+  String get tagline;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'LOADING...'**
+  String get loading;
+
   /// No description provided for @skip.
   ///
   /// In en, this message translates to:

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 import '../../../app/constants.dart';
 import '../../../app/routes.dart';
@@ -38,8 +38,8 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(height: 32),
 
               RichText(
-                text: const TextSpan(
-                  style: TextStyle(
+                text: TextSpan(
+                  style: const TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w800,
                     color: AppColors.dark,
@@ -47,8 +47,8 @@ class WelcomeScreen extends StatelessWidget {
                     letterSpacing: -1,
                   ),
                   children: [
-                    TextSpan(text: 'Bienvenue sur\n'),
-                    TextSpan(
+                    TextSpan(text: AppLocalizations.of(context)!.welcomeTitle),
+                    const TextSpan(
                       text: 'Afrostand',
                       style: TextStyle(color: AppColors.orange),
                     ),
@@ -58,9 +58,9 @@ class WelcomeScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              const Text(
-                'Rejoins la communauté qui célèbre la mode africaine contemporaine.',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.welcomeSubtitle,
+                style: const TextStyle(
                   fontSize: 13,
                   color: Colors.black54,
                   height: 1.5,
@@ -73,14 +73,14 @@ class WelcomeScreen extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () => context.push(AppRoutes.register),
-                    child: const Text('Créer un compte'),
+                    child: Text(AppLocalizations.of(context)!.createAccount),
                   ),
 
                   const SizedBox(height: 12),
 
                   OutlinedButton(
                     onPressed: () => context.push(AppRoutes.login),
-                    child: const Text('Se connecter'),
+                    child: Text(AppLocalizations.of(context)!.signIn),
                   ),
 
                   const SizedBox(height: 24),
@@ -88,11 +88,11 @@ class WelcomeScreen extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(child: Divider(color: Colors.black.withOpacity(0.1))),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
-                          'OU',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black26),
+                          AppLocalizations.of(context)!.or,
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black26),
                         ),
                       ),
                       Expanded(child: Divider(color: Colors.black.withOpacity(0.1))),
@@ -127,11 +127,11 @@ class WelcomeScreen extends StatelessWidget {
 
               const Spacer(),
 
-              const Center(
+              Center(
                 child: Text(
-                  'En continuant, tu acceptes nos CGU & Politique de confidentialité',
+                  AppLocalizations.of(context)!.termsAgreement,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
                     color: Colors.black26,
                   ),

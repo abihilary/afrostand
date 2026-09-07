@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 import '../../../app/constants.dart';
 import '../../../app/routes.dart';
@@ -31,24 +31,24 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              'Bon retour !',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.welcomeBack,
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Connecte-toi pour retrouver tes favoris.',
-              style: TextStyle(fontSize: 13, color: Colors.black54),
+            Text(
+              AppLocalizations.of(context)!.loginSubtitle,
+              style: const TextStyle(fontSize: 13, color: Colors.black54),
             ),
             const SizedBox(height: 32),
 
-            const Text(
-              'EMAIL OU TÉLÉPHONE',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.emailOrPhone,
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
@@ -64,9 +64,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 24),
 
-            const Text(
-              'MOT DE PASSE',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.password,
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
@@ -98,14 +98,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text('Se souvenir', style: TextStyle(fontSize: 12)),
+                    Text(AppLocalizations.of(context)!.rememberMe, style: const TextStyle(fontSize: 12)),
                   ],
                 ),
                 TextButton(
                   onPressed: () {},
-                  child: const Text(
-                    'Mot de passe oublié?',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context)!.forgotPassword,
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       decoration: TextDecoration.underline,
@@ -119,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
             ElevatedButton(
               onPressed: () => context.go(AppRoutes.home),
-              child: const Text('Se connecter'),
+              child: Text(AppLocalizations.of(context)!.signIn),
             ),
 
             const SizedBox(height: 24),
@@ -128,13 +128,13 @@ class _LoginScreenState extends State<LoginScreen> {
               child: TextButton(
                 onPressed: () => context.push(AppRoutes.register),
                 child: RichText(
-                  text: const TextSpan(
-                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                  text: TextSpan(
+                    style: const TextStyle(color: Colors.black54, fontSize: 13),
                     children: [
-                      TextSpan(text: 'Nouveau ici? '),
+                      TextSpan(text: AppLocalizations.of(context)!.newHere),
                       TextSpan(
-                        text: 'Créer un compte',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark),
+                        text: AppLocalizations.of(context)!.createAccount,
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark),
                       ),
                     ],
                   ),

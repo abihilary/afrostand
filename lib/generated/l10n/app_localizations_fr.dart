@@ -12,6 +12,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appName => 'AFROSTAND';
 
   @override
+  String get tagline => 'LA MODE AFRICAINE';
+
+  @override
+  String get loading => 'CHARGEMENT...';
+
+  @override
   String get skip => 'Passer';
 
   @override

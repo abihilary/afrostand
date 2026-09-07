@@ -1,6 +1,8 @@
 {
   "@@locale": "fr",
   "appName": "AFROSTAND",
+  "tagline": "LA MODE AFRICAINE",
+  "loading": "CHARGEMENT...",
   "skip": "Passer",
   "continueBtn": "Continuer",
   "startAdventure": "Commencer l’aventure",

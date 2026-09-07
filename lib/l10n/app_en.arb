@@ -1,6 +1,8 @@
 {
   "@@locale": "en",
   "appName": "AFROSTAND",
+  "tagline": "AFRICAN FASHION",
+  "loading": "LOADING...",
   "skip": "Skip",
   "continueBtn": "Continue",
   "startAdventure": "Start the adventure",

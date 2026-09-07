@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 import '../../../app/constants.dart';
 import '../../../app/routes.dart';
@@ -24,9 +24,9 @@ class RegisterScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              'Créer un compte',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.registerTitle,
+              style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,
@@ -34,26 +34,26 @@ class RegisterScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            const TextField(
+            TextField(
               decoration: InputDecoration(
-                hintText: 'Nom complet',
+                hintText: AppLocalizations.of(context)!.fullName,
               ),
             ),
 
             const SizedBox(height: 16),
 
-            const TextField(
+            TextField(
               decoration: InputDecoration(
-                hintText: 'Email',
+                hintText: AppLocalizations.of(context)!.email,
               ),
             ),
 
             const SizedBox(height: 16),
 
-            const TextField(
+            TextField(
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Mot de passe',
+                hintText: AppLocalizations.of(context)!.password,
               ),
             ),
 
@@ -61,15 +61,15 @@ class RegisterScreen extends StatelessWidget {
 
             ElevatedButton(
               onPressed: () => context.push(AppRoutes.otp),
-              child: const Text('Continuer'),
+              child: Text(AppLocalizations.of(context)!.continueBtn),
             ),
 
             const SizedBox(height: 16),
 
-            const Center(
+            Center(
               child: Text(
-                'Tu recevras un code OTP par SMS',
-                style: TextStyle(fontSize: 11, color: Colors.black26),
+                AppLocalizations.of(context)!.otpNotice,
+                style: const TextStyle(fontSize: 11, color: Colors.black26),
               ),
             ),
 
@@ -79,13 +79,13 @@ class RegisterScreen extends StatelessWidget {
               child: TextButton(
                 onPressed: () => context.push(AppRoutes.login),
                 child: RichText(
-                  text: const TextSpan(
-                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                  text: TextSpan(
+                    style: const TextStyle(color: Colors.black54, fontSize: 13),
                     children: [
-                      TextSpan(text: 'Déjà un compte? '),
+                      TextSpan(text: AppLocalizations.of(context)!.alreadyHaveAccount),
                       TextSpan(
-                        text: 'Se connecter',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark),
+                        text: AppLocalizations.of(context)!.signIn,
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark),
                       ),
                     ],
                   ),

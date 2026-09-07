@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../generated/l10n/app_localizations.dart';
 
 import '../../../app/constants.dart';
 import '../../../app/routes.dart';
@@ -24,18 +24,18 @@ class OtpScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              'Vérifie ton numéro',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.verifyNumber,
+              style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Code envoyé au +221 77 123 45 67',
-              style: TextStyle(fontSize: 13, color: Colors.black54),
+            Text(
+              '${AppLocalizations.of(context)!.codeSentTo} +221 77 123 45 67',
+              style: const TextStyle(fontSize: 13, color: Colors.black54),
             ),
 
             const SizedBox(height: 48),
@@ -54,20 +54,20 @@ class OtpScreen extends StatelessWidget {
 
             ElevatedButton(
               onPressed: () => context.go(AppRoutes.home),
-              child: const Text('Vérifier & Continuer'),
+              child: Text(AppLocalizations.of(context)!.verifyAndContinue),
             ),
 
             const SizedBox(height: 24),
 
             Center(
               child: RichText(
-                text: const TextSpan(
-                  style: TextStyle(color: Colors.black54, fontSize: 13),
+                text: TextSpan(
+                  style: const TextStyle(color: Colors.black54, fontSize: 13),
                   children: [
-                    TextSpan(text: 'Pas reçu? '),
+                    TextSpan(text: AppLocalizations.of(context)!.didntReceive),
                     TextSpan(
-                      text: 'Renvoyer (28s)',
-                      style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline, color: AppColors.dark),
+                      text: AppLocalizations.of(context)!.resend,
+                      style: const TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline, color: AppColors.dark),
                     ),
                   ],
                 ),

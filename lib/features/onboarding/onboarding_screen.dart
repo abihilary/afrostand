@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 import '../../app/constants.dart';
 import '../../app/routes.dart';
@@ -69,10 +69,11 @@ class _DiscoverySlide extends StatelessWidget {
           ),
         ),
         _bottomContent(
-          title: 'Découvrez un monde de shopping avec ',
+          context: context,
+          title: AppLocalizations.of(context)!.discoveryTitle,
           highlight: 'Afrostand',
-          subtitle: 'Des créateurs locaux, des pièces uniques, faites main avec amour.',
-          buttonText: 'Continuer',
+          subtitle: AppLocalizations.of(context)!.discoverySubtitle,
+          buttonText: AppLocalizations.of(context)!.continueBtn,
           onPressed: onNext,
           pageIndex: 0,
         ),
@@ -115,19 +116,19 @@ class _SocialSlide extends StatelessWidget {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.people, color: Colors.white, size: 14),
-                      SizedBox(width: 8),
+                      const Icon(Icons.people, color: Colors.white, size: 14),
+                      const SizedBox(width: 8),
                       Text(
-                        'SOCIAL SHOPPING',
-                        style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        AppLocalizations.of(context)!.socialShopping,
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Shopping is better with friends',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.socialTitle,
+                  style: const TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w800,
                     height: 1,
@@ -135,9 +136,9 @@ class _SocialSlide extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Partage tes looks, demande l’avis de tes proches, shoppez ensemble en temps réel.',
-                  style: TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
+                Text(
+                  AppLocalizations.of(context)!.socialSubtitle,
+                  style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
                 ),
               ],
             ),
@@ -161,21 +162,22 @@ class _SocialSlide extends StatelessWidget {
                 Positioned(
                   left: 24,
                   bottom: 20,
-                  child: _commentCard('Aminata', 'J’adore ce boubou! 😍'),
+                  child: _commentCard(context, 'Aminata', AppLocalizations.of(context)!.commentAminata),
                 ),
                 Positioned(
                   right: 40,
                   top: 20,
-                  child: _messageBubble('James Lee', 'Ce look te va trop bien!'),
+                  child: _messageBubble(context, 'James Lee', AppLocalizations.of(context)!.messageJames),
                 ),
               ],
             ),
           ),
           _bottomContent(
+            context: context,
             title: '',
             highlight: '',
             subtitle: '',
-            buttonText: 'Continuer',
+            buttonText: AppLocalizations.of(context)!.continueBtn,
             onPressed: onNext,
             pageIndex: 1,
             showText: false,
@@ -196,7 +198,7 @@ class _SocialSlide extends StatelessWidget {
     );
   }
 
-  Widget _commentCard(String name, String comment) {
+  Widget _commentCard(BuildContext context, String name, String comment) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -221,7 +223,7 @@ class _SocialSlide extends StatelessWidget {
     );
   }
 
-  Widget _messageBubble(String name, String message) {
+  Widget _messageBubble(BuildContext context, String name, String message) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -289,23 +291,23 @@ class _MarketplaceSlide extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'African Print\nMarketplace',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, height: 1),
+                Text(
+                  AppLocalizations.of(context)!.marketplaceTitle,
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, height: 1),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Authentique, traçable, durable. Chaque pièce raconte une histoire de savoir-faire.',
-                  style: TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
+                Text(
+                  AppLocalizations.of(context)!.marketplaceSubtitle,
+                  style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
                 ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    _statItem('100%', 'Fait Main'),
+                    _statItem(context, '100%', AppLocalizations.of(context)!.handmade),
                     const SizedBox(width: 8),
-                    _statItem('250+', 'Créateurs'),
+                    _statItem(context, '250+', AppLocalizations.of(context)!.creators),
                     const SizedBox(width: 8),
-                    _statItem('12k+', 'Pièces'),
+                    _statItem(context, '12k+', AppLocalizations.of(context)!.pieces),
                   ],
                 ),
                 const Spacer(),
@@ -315,7 +317,7 @@ class _MarketplaceSlide extends StatelessWidget {
                     backgroundColor: AppColors.orange,
                     foregroundColor: AppColors.dark,
                   ),
-                  child: const Text('Commencer l’aventure'),
+                  child: Text(AppLocalizations.of(context)!.startAdventure),
                 ),
               ],
             ),
@@ -325,7 +327,7 @@ class _MarketplaceSlide extends StatelessWidget {
     );
   }
 
-  Widget _statItem(String value, String label) {
+  Widget _statItem(BuildContext context, String value, String label) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -345,6 +347,7 @@ class _MarketplaceSlide extends StatelessWidget {
 }
 
 Widget _bottomContent({
+  required BuildContext context,
   required String title,
   required String highlight,
   required String subtitle,

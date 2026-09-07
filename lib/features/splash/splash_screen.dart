@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../app/app.dart';
+import '../../generated/l10n/app_localizations.dart';
 
 import '../../app/constants.dart';
 import '../../app/routes.dart';
@@ -56,9 +55,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
             const SizedBox(height: 24),
 
-            const Text(
-              'AFROSTAND',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.appName,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
@@ -69,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 8),
 
             Text(
-              'LA MODE AFRICAINE',
+              AppLocalizations.of(context)!.tagline,
               style: TextStyle(
                 color: Colors.white.withOpacity(.65),
                 fontSize: 11,
