@@ -10,10 +10,13 @@ class RegisterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -27,10 +30,11 @@ class RegisterScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               AppLocalizations.of(context)!.registerTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,
+                color: isDark ? Colors.white : AppColors.dark,
               ),
             ),
             const SizedBox(height: 32),
@@ -70,7 +74,7 @@ class RegisterScreen extends StatelessWidget {
             Center(
               child: Text(
                 AppLocalizations.of(context)!.otpNotice,
-                style: const TextStyle(fontSize: 11, color: Colors.black26),
+                style: TextStyle(fontSize: 11, color: isDark ? Colors.white24 : Colors.black26),
               ),
             ),
 
@@ -81,12 +85,12 @@ class RegisterScreen extends StatelessWidget {
                 onPressed: () => context.push(AppRoutes.login),
                 child: RichText(
                   text: TextSpan(
-                    style: const TextStyle(color: Colors.black54, fontSize: 13),
+                    style: TextStyle(color: isDark ? Colors.white60 : Colors.black54, fontSize: 13),
                     children: [
                       TextSpan(text: AppLocalizations.of(context)!.alreadyHaveAccount),
                       TextSpan(
                         text: AppLocalizations.of(context)!.signIn,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? AppColors.orange : AppColors.dark),
                       ),
                     ],
                   ),

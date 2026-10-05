@@ -17,10 +17,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -34,26 +37,27 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 20),
             Text(
               AppLocalizations.of(context)!.welcomeBack,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,
+                color: isDark ? Colors.white : AppColors.dark,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               AppLocalizations.of(context)!.loginSubtitle,
-              style: const TextStyle(fontSize: 13, color: Colors.black54),
+              style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.black54),
             ),
             const SizedBox(height: 32),
 
             Text(
               AppLocalizations.of(context)!.emailOrPhone,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
-                color: Colors.black45,
+                color: isDark ? Colors.white38 : Colors.black45,
               ),
             ),
             const SizedBox(height: 8),
@@ -67,11 +71,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
             Text(
               AppLocalizations.of(context)!.password,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
-                color: Colors.black45,
+                color: isDark ? Colors.white38 : Colors.black45,
               ),
             ),
             const SizedBox(height: 8),
@@ -96,6 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         value: _rememberMe,
                         onChanged: (v) => setState(() => _rememberMe = v ?? false),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        activeColor: AppColors.orange,
+                        checkColor: AppColors.dark,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -106,10 +112,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {},
                   child: Text(
                     AppLocalizations.of(context)!.forgotPassword,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       decoration: TextDecoration.underline,
+                      color: isDark ? AppColors.orange : AppColors.dark,
                     ),
                   ),
                 ),
@@ -130,12 +137,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () => context.push(AppRoutes.register),
                 child: RichText(
                   text: TextSpan(
-                    style: const TextStyle(color: Colors.black54, fontSize: 13),
+                    style: TextStyle(color: isDark ? Colors.white60 : Colors.black54, fontSize: 13),
                     children: [
                       TextSpan(text: AppLocalizations.of(context)!.newHere),
                       TextSpan(
                         text: AppLocalizations.of(context)!.createAccount,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? AppColors.orange : AppColors.dark),
                       ),
                     ],
                   ),

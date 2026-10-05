@@ -135,4 +135,240 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get resend => 'Renvoyer (28s)';
+
+  @override
+  String get goodMorning => 'BONJOUR';
+
+  @override
+  String get search => 'Rechercher';
+
+  @override
+  String get local => 'Local';
+
+  @override
+  String get sustainable => 'Durable';
+
+  @override
+  String get gift => 'Cadeau';
+
+  @override
+  String get exclusive => 'AFROSTAND EXCLUSIF';
+
+  @override
+  String get newCollection => 'Nouvelle collection';
+
+  @override
+  String get collectionDesc => '-30% pour les 100 premières commandes';
+
+  @override
+  String get discover => 'Découvrir';
+
+  @override
+  String get categories => 'Catégories';
+
+  @override
+  String get seeAll => 'VOIR TOUT';
+
+  @override
+  String get featuredProducts => 'Produits à la une';
+
+  @override
+  String get filter => 'Filtrer';
+
+  @override
+  String get navHome => 'Accueil';
+
+  @override
+  String get navSearch => 'Recherche';
+
+  @override
+  String get navCreators => 'Createurs';
+
+  @override
+  String get navCart => 'Panier';
+
+  @override
+  String get navProfile => 'Profil';
+
+  @override
+  String get items => 'articles';
+
+  @override
+  String get panier => 'Panier';
+
+  @override
+  String get clear => 'Vider';
+
+  @override
+  String get summary => 'RÉSUMÉ';
+
+  @override
+  String get subtotal => 'Sous-total';
+
+  @override
+  String get shipping => 'Livraison';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get placeOrder => 'Passer la commande';
+
+  @override
+  String get size => 'TAILLE';
+
+  @override
+  String get colorPattern => 'COULEUR — MOTIF';
+
+  @override
+  String get addedToCart => 'Ajouté au panier';
+
+  @override
+  String get buyNow => 'Acheter';
+
+  @override
+  String get addToCart => 'Ajouter';
+
+  @override
+  String get view => 'Voir';
+
+  @override
+  String get followers => 'followers';
+
+  @override
+  String get respondsIn => 'Répond en';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get swipeAndSlay => 'Swipe & Slay';
+
+  @override
+  String get commentedOnLook => 'a partagé un look';
+
+  @override
+  String get adore => 'J’adore 🔥';
+
+  @override
+  String get comment => 'Commenter';
+
+  @override
+  String get share => 'Partager';
+
+  @override
+  String get online => 'En ligne';
+
+  @override
+  String get respondsFast => 'Répond vite';
+
+  @override
+  String get writeMessage => 'Écrire un message...';
+
+  @override
+  String get cartTitle => 'Panier';
+
+  @override
+  String get checkoutTitle => 'Adresse & Livraison';
+
+  @override
+  String get shippingAddress => 'Adresse de livraison';
+
+  @override
+  String get modify => 'Modifier';
+
+  @override
+  String get deliveryOptions => 'Options de livraison';
+
+  @override
+  String get paymentTitle => 'Paiement';
+
+  @override
+  String get totalToPay => 'Total à payer';
+
+  @override
+  String get mobileMoney => 'MOBILE MONEY';
+
+  @override
+  String get bankCard => 'CARTE BANCAIRE';
+
+  @override
+  String get pay => 'Payer';
+
+  @override
+  String get orderConfirmed => 'Commande confirmée ! 🥳';
+
+  @override
+  String orderPrep(String name, String orderId, String deliveryTime) {
+    return 'Merci $name ! Ta commande #$orderId est en préparation. Livraison prévue $deliveryTime.';
+  }
+
+  @override
+  String get trackOrder => 'Suivre ma commande';
+
+  @override
+  String get continueShopping => 'Continuer shopping';
+
+  @override
+  String get memberGold => 'MEMBRE GOLD';
+
+  @override
+  String get points => 'pts';
+
+  @override
+  String get orders => 'Commandes';
+
+  @override
+  String get favorites => 'Favoris';
+
+  @override
+  String get followedCreators => 'Créateurs suivis';
+
+  @override
+  String get myOrders => 'Mes commandes';
+
+  @override
+  String get wishlist => 'Wishlist';
+
+  @override
+  String get addresses => 'Adresses';
+
+  @override
+  String get payments => 'Paiements';
+
+  @override
+  String get settings => 'Paramètres';
+
+  @override
+  String get inProgress => 'en cours';
+
+  @override
+  String get send => 'Envoyer';
+
+  @override
+  String get filters => 'FILTRES';
+
+  @override
+  String get reset => 'Réinitialiser';
+
+  @override
+  String get since => 'Depuis';
+
+  @override
+  String get products => 'Produits';
+
+  @override
+  String get rating => 'Note';
+
+  @override
+  String get follow => 'Suivre';
+
+  @override
+  String get unfollow => 'Ne plus suivre';
+
+  @override
+  String get searchPlaceholder => 'Boubou, wax, Dakar...';
+
+  @override
+  String get verified => 'Vérifié';
 }

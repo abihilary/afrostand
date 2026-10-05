@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../generated/l10n/app_localizations.dart';
-
 import '../../app/constants.dart';
 import '../../app/routes.dart';
+import '../../shared/widgets/typing_text.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,7 +19,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _next() {
     if (_currentPage == 2) {
-      context.go(AppRoutes.welcome);
+      context.go(AppRoutes.home);
       return;
     }
     _controller.nextPage(
@@ -36,7 +37,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           _DiscoverySlide(onNext: _next),
           _SocialSlide(onNext: _next),
-          _MarketplaceSlide(onStart: () => context.go(AppRoutes.welcome)),
+          _MarketplaceSlide(onStart: () => context.go(AppRoutes.home)),
         ],
       ),
     );
@@ -49,36 +50,40 @@ class _DiscoverySlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            child: GridView.count(
-              crossAxisCount: 3,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _collageItem(AppAssets.model1, 2, 2),
-                _collageItem(AppAssets.model2, 1, 1),
-                _collageItem(AppAssets.model3, 1, 1),
-                _collageItem(AppAssets.model4, 1, 1),
-                _collageItem(AppAssets.model5, 2, 1),
-              ],
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.scaffoldBackgroundColor,
+      child: Column(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: GridView.count(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _collageItem(AppAssets.model1, 2, 2),
+                  _collageItem(AppAssets.model2, 1, 1),
+                  _collageItem(AppAssets.model3, 1, 1),
+                  _collageItem(AppAssets.model4, 1, 1),
+                  _collageItem(AppAssets.model5, 2, 1),
+                ],
+              ),
             ),
           ),
-        ),
-        _bottomContent(
-          context: context,
-          title: AppLocalizations.of(context)!.discoveryTitle,
-          highlight: 'Afrostand',
-          subtitle: AppLocalizations.of(context)!.discoverySubtitle,
-          buttonText: AppLocalizations.of(context)!.continueBtn,
-          onPressed: onNext,
-          pageIndex: 0,
-        ),
-      ],
+          _bottomContent(
+            context: context,
+            title: AppLocalizations.of(context)!.discoveryTitle,
+            highlight: 'Afrostand',
+            subtitle: AppLocalizations.of(context)!.discoverySubtitle,
+            buttonText: AppLocalizations.of(context)!.continueBtn,
+            onPressed: onNext,
+            pageIndex: 0,
+          ),
+        ],
+      ),
     );
   }
 
@@ -98,81 +103,101 @@ class _SocialSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: AppColors.sand,
+      color: isDark ? const Color(0xFF16100D) : AppColors.sand,
       child: Column(
         children: [
           const SizedBox(height: 80),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.dark,
+                    color: isDark ? AppColors.orange : AppColors.dark,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.people, color: Colors.white, size: 14),
+                      Icon(Icons.people, color: isDark ? AppColors.dark : Colors.white, size: 14),
                       const SizedBox(width: 8),
                       Text(
                         AppLocalizations.of(context)!.socialShopping,
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: isDark ? AppColors.dark : Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  AppLocalizations.of(context)!.socialTitle,
-                  style: const TextStyle(
-                    fontSize: 30,
+                const SizedBox(height: 24),
+                TypingText(
+                  text: AppLocalizations.of(context)!.socialTitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 34,
                     fontWeight: FontWeight.w800,
                     height: 1,
                     letterSpacing: -1,
+                    color: isDark ? Colors.white : AppColors.dark,
                   ),
-                ),
-                const SizedBox(height: 12),
+                ).animate().fade(duration: 600.ms).slideY(begin: 0.2),
+                const SizedBox(height: 16),
                 Text(
                   AppLocalizations.of(context)!.socialSubtitle,
-                  style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
-                ),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15, color: isDark ? Colors.white60 : Colors.black54, height: 1.5),
+                ).animate().fade(delay: 200.ms, duration: 600.ms),
               ],
             ),
           ),
-          const Spacer(),
-          // Floating cards visualization
-          SizedBox(
-            height: 300,
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 24,
-                  top: 0,
-                  child: _floatingImage(AppAssets.model6, 180),
+          
+          Expanded(
+            child: Center(
+              child: SizedBox(
+                height: 400,
+                width: double.infinity,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Positioned(
+                      left: 10,
+                      top: 40,
+                      child: _floatingImage(AppAssets.model6, 220)
+                          .animate().fade(duration: 800.ms).slideX(begin: -0.2),
+                    ),
+                    Positioned(
+                      right: 10,
+                      bottom: 40,
+                      child: _floatingImage(AppAssets.model7, 240)
+                          .animate().fade(duration: 800.ms).slideX(begin: 0.2),
+                    ),
+                    
+                    Positioned(
+                      top: 120,
+                      right: 30,
+                      child: _messageBubble(
+                        context, 
+                        'James Lee', 
+                        AppLocalizations.of(context)!.messageJames
+                      ).animate().fade(delay: 1.seconds).scale(begin: const Offset(0.8, 0.8)),
+                    ),
+                    Positioned(
+                      bottom: 80,
+                      left: 30,
+                      child: _commentCard(
+                        context, 
+                        'Aminata', 
+                        AppLocalizations.of(context)!.commentAminata
+                      ).animate().fade(delay: 1.5.seconds).scale(begin: const Offset(0.8, 0.8)),
+                    ),
+                  ],
                 ),
-                Positioned(
-                  right: 24,
-                  top: 60,
-                  child: _floatingImage(AppAssets.model7, 200),
-                ),
-                Positioned(
-                  left: 24,
-                  bottom: 20,
-                  child: _commentCard(context, 'Aminata', AppLocalizations.of(context)!.commentAminata),
-                ),
-                Positioned(
-                  right: 40,
-                  top: 20,
-                  child: _messageBubble(context, 'James Lee', AppLocalizations.of(context)!.messageJames),
-                ),
-              ],
+              ),
             ),
           ),
+          
           _bottomContent(
             context: context,
             title: '',
@@ -190,33 +215,39 @@ class _SocialSlide extends StatelessWidget {
 
   Widget _floatingImage(String url, double height) {
     return Container(
-      width: 160,
+      width: 180,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10))],
         image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
       ),
     );
   }
 
   Widget _commentCard(BuildContext context, String name, String comment) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 15)],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircleAvatar(radius: 14, backgroundColor: AppColors.cream),
-          const SizedBox(width: 8),
+          const CircleAvatar(radius: 16, backgroundImage: NetworkImage(AppAssets.model2)),
+          const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              Text(comment, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+              Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              TypingText(
+                text: comment,
+                duration: const Duration(milliseconds: 40),
+                style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black54),
+              ),
             ],
           ),
         ],
@@ -225,18 +256,25 @@ class _SocialSlide extends StatelessWidget {
   }
 
   Widget _messageBubble(BuildContext context, String name, String message) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
+      constraints: const BoxConstraints(maxWidth: 200),
       decoration: BoxDecoration(
-        color: AppColors.dark,
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? AppColors.orange : AppColors.dark,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(name, style: const TextStyle(fontSize: 11, color: Colors.white60)),
-          const SizedBox(height: 2),
-          Text(message, style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
+          Text(name, style: TextStyle(fontSize: 11, color: isDark ? AppColors.dark.withOpacity(0.6) : Colors.white60, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          TypingText(
+            text: message,
+            duration: const Duration(milliseconds: 30),
+            style: TextStyle(fontSize: 13, color: isDark ? AppColors.dark : Colors.white, fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );
@@ -249,6 +287,9 @@ class _MarketplaceSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
         Expanded(
@@ -277,7 +318,7 @@ class _MarketplaceSlide extends StatelessWidget {
                   ),
                   child: const Text(
                     'ANKARA • KENTE • BOGOLAN',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.dark),
                   ),
                 ),
               ),
@@ -287,19 +328,19 @@ class _MarketplaceSlide extends StatelessWidget {
         Expanded(
           flex: 48,
           child: Container(
-            color: Colors.white,
+            color: theme.scaffoldBackgroundColor,
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  AppLocalizations.of(context)!.marketplaceTitle,
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, height: 1),
+                TypingText(
+                  text: AppLocalizations.of(context)!.marketplaceTitle,
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, height: 1, color: isDark ? Colors.white : AppColors.dark),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   AppLocalizations.of(context)!.marketplaceSubtitle,
-                  style: const TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
+                  style: TextStyle(fontSize: 14, color: isDark ? Colors.white60 : Colors.black54, height: 1.5),
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -329,17 +370,19 @@ class _MarketplaceSlide extends StatelessWidget {
   }
 
   Widget _statItem(BuildContext context, String value, String label) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.sand,
+          color: isDark ? const Color(0xFF1A1A1A) : AppColors.sand,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
             Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-            Text(label, style: const TextStyle(fontSize: 10, color: Colors.black45, fontWeight: FontWeight.bold)),
+            Text(label, style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black45, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -357,26 +400,24 @@ Widget _bottomContent({
   required int pageIndex,
   bool showText = true,
 }) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+
   return Padding(
     padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
     child: Column(
       children: [
         if (showText) ...[
-          RichText(
+          TypingText(
+            text: "$title$highlight",
             textAlign: TextAlign.center,
-            text: TextSpan(
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.black, height: 1.1),
-              children: [
-                TextSpan(text: title),
-                TextSpan(text: highlight, style: const TextStyle(color: AppColors.orange)),
-              ],
-            ),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black, height: 1.1),
           ),
           const SizedBox(height: 12),
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: Colors.black54, height: 1.5),
+            style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.black54, height: 1.5),
           ),
           const SizedBox(height: 24),
         ],
@@ -401,7 +442,7 @@ Widget _bottomContent({
               width: active ? 24 : 6,
               height: 4,
               decoration: BoxDecoration(
-                color: active ? AppColors.dark : Colors.black.withOpacity(0.1),
+                color: active ? (isDark ? AppColors.orange : AppColors.dark) : (isDark ? Colors.white10 : Colors.black.withOpacity(0.1)),
                 borderRadius: BorderRadius.circular(4),
               ),
             );

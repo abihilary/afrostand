@@ -135,4 +135,240 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resend => 'Resend (28s)';
+
+  @override
+  String get goodMorning => 'GOOD MORNING';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get local => 'Local';
+
+  @override
+  String get sustainable => 'Sustainable';
+
+  @override
+  String get gift => 'Gift';
+
+  @override
+  String get exclusive => 'AFROSTAND EXCLUSIVE';
+
+  @override
+  String get newCollection => 'New Collection';
+
+  @override
+  String get collectionDesc => '-30% for the first 100 orders';
+
+  @override
+  String get discover => 'Discover';
+
+  @override
+  String get categories => 'Categories';
+
+  @override
+  String get seeAll => 'SEE ALL';
+
+  @override
+  String get featuredProducts => 'Featured Products';
+
+  @override
+  String get filter => 'Filter';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navSearch => 'Search';
+
+  @override
+  String get navCreators => 'Creators';
+
+  @override
+  String get navCart => 'Cart';
+
+  @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get items => 'items';
+
+  @override
+  String get panier => 'Cart';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get summary => 'SUMMARY';
+
+  @override
+  String get subtotal => 'Subtotal';
+
+  @override
+  String get shipping => 'Shipping';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get placeOrder => 'Place order';
+
+  @override
+  String get size => 'SIZE';
+
+  @override
+  String get colorPattern => 'COLOR — PATTERN';
+
+  @override
+  String get addedToCart => 'Added to cart';
+
+  @override
+  String get buyNow => 'Buy now';
+
+  @override
+  String get addToCart => 'Add to cart';
+
+  @override
+  String get view => 'View';
+
+  @override
+  String get followers => 'followers';
+
+  @override
+  String get respondsIn => 'Responds in';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get swipeAndSlay => 'Swipe & Slay';
+
+  @override
+  String get commentedOnLook => 'shared a look';
+
+  @override
+  String get adore => 'Adore 🔥';
+
+  @override
+  String get comment => 'Comment';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get respondsFast => 'Responds fast';
+
+  @override
+  String get writeMessage => 'Write a message...';
+
+  @override
+  String get cartTitle => 'Cart';
+
+  @override
+  String get checkoutTitle => 'Address & Delivery';
+
+  @override
+  String get shippingAddress => 'Shipping address';
+
+  @override
+  String get modify => 'Modify';
+
+  @override
+  String get deliveryOptions => 'Delivery options';
+
+  @override
+  String get paymentTitle => 'Payment';
+
+  @override
+  String get totalToPay => 'Total to pay';
+
+  @override
+  String get mobileMoney => 'MOBILE MONEY';
+
+  @override
+  String get bankCard => 'BANK CARD';
+
+  @override
+  String get pay => 'Pay';
+
+  @override
+  String get orderConfirmed => 'Order confirmed! 🥳';
+
+  @override
+  String orderPrep(String name, String orderId, String deliveryTime) {
+    return 'Thank you $name! Your order #$orderId is being prepared. Delivery scheduled for $deliveryTime.';
+  }
+
+  @override
+  String get trackOrder => 'Track my order';
+
+  @override
+  String get continueShopping => 'Continue shopping';
+
+  @override
+  String get memberGold => 'GOLD MEMBER';
+
+  @override
+  String get points => 'pts';
+
+  @override
+  String get orders => 'Orders';
+
+  @override
+  String get favorites => 'Favorites';
+
+  @override
+  String get followedCreators => 'Followed Creators';
+
+  @override
+  String get myOrders => 'My orders';
+
+  @override
+  String get wishlist => 'Wishlist';
+
+  @override
+  String get addresses => 'Addresses';
+
+  @override
+  String get payments => 'Payments';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get inProgress => 'in progress';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String get filters => 'FILTERS';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get since => 'Since';
+
+  @override
+  String get products => 'Products';
+
+  @override
+  String get rating => 'Rating';
+
+  @override
+  String get follow => 'Follow';
+
+  @override
+  String get unfollow => 'Unfollow';
+
+  @override
+  String get searchPlaceholder => 'Boubou, wax, Dakar...';
+
+  @override
+  String get verified => 'Verified';
 }

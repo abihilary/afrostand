@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Add this internet permission tag below -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="afrostand"
         android:name="${applicationName}"
