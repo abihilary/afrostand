@@ -49,10 +49,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created successfully! Welcome.')),
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirm your email'),
+          content: const Text(
+            'We have sent a confirmation link to your email address. Please check your inbox and confirm your account before signing in.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.login);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       );
-      context.go(AppRoutes.home);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.errorMessage ?? 'Registration failed')),
