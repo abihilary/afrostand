@@ -29,6 +29,6 @@ class AppConstants {
   
   // Supabase Configuration
   // Replace these with your actual Supabase project credentials
-  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
-  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  static const String supabaseUrl = 'https://fbabckmfazqvvmpbjytj.supabase.co';
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZiYWJja21mYXpxdnZtcGJqeXRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExOTc1NzksImV4cCI6MjEwNjc3MzU3OX0.wxTx5tPpEovMRmqVXJD6UkXWJpfZPnJFdg0PDGM1EIs';
 }

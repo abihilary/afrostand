@@ -371,4 +371,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verified => 'Verified';
+
+  @override
+  String get signOut => 'Sign out';
 }

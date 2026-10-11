@@ -1,17 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../generated/l10n/app_localizations.dart';
 
 import '../../../app/constants.dart';
 import '../../../app/routes.dart';
+import '../../../core/providers/auth_provider.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRegister() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    final auth = context.read<AuthProvider>();
+    final success = await auth.signUp(
+      email: email,
+      password: password,
+      fullName: name,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account created successfully! Welcome.')),
+      );
+      context.go(AppRoutes.home);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.errorMessage ?? 'Registration failed')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -40,6 +93,7 @@ class RegisterScreen extends StatelessWidget {
             const SizedBox(height: 32),
 
             TextField(
+              controller: _nameController,
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context)!.fullName,
               ),
@@ -48,6 +102,8 @@ class RegisterScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             TextField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context)!.email,
               ),
@@ -56,6 +112,7 @@ class RegisterScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             TextField(
+              controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context)!.password,
@@ -64,9 +121,18 @@ class RegisterScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            ElevatedButton(
-              onPressed: () => context.push(AppRoutes.otp),
-              child: Text(AppLocalizations.of(context)!.continueBtn),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: auth.isLoading ? null : _handleRegister,
+                child: auth.isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(AppLocalizations.of(context)!.continueBtn),
+              ),
             ),
 
             const SizedBox(height: 16),

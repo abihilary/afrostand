@@ -125,5 +125,6 @@
   "follow": "Suivre",
   "unfollow": "Ne plus suivre",
   "searchPlaceholder": "Boubou, wax, Dakar...",
-  "verified": "Vérifié"
+  "verified": "Vérifié",
+  "signOut": "Se déconnecter"
 }

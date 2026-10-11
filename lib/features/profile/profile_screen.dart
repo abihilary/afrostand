@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/constants.dart';
 import '../../app/routes.dart';
+import '../../core/providers/auth_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/widgets/animated_pressable.dart';
 import 'widgets/settings_modal.dart';
@@ -24,6 +26,11 @@ class ProfileScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    final auth = context.watch<AuthProvider>();
+    final user = auth.currentUser;
+
+    final fullName = user?.userMetadata?['full_name'] ?? user?.email?.split('@').first ?? 'Guest User';
+    final email = user?.email ?? 'Not signed in';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -51,7 +58,7 @@ class ProfileScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Aminata Diallo',
+                            fullName,
                             style: TextStyle(
                               fontSize: 18, 
                               fontWeight: FontWeight.w800,
@@ -59,7 +66,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'aminata@email.com • Dakar',
+                            email,
                             style: TextStyle(
                               fontSize: 12, 
                               color: isDark ? Colors.white38 : Colors.black45, 
@@ -67,22 +74,32 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isDark ? AppColors.orange : AppColors.sand,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${l10n.memberGold} • 320 ${l10n.points}',
-                              style: TextStyle(
-                                fontSize: 10, 
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? AppColors.dark : null,
-                              ),
-                            ),
-                          ).animate(onPlay: (controller) => controller.repeat())
-                           .shimmer(delay: 2.seconds, duration: 1.5.seconds, color: Colors.white60),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppColors.orange : AppColors.sand,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  auth.isAuthenticated ? '${l10n.memberGold} • 320 ${l10n.points}' : 'GUEST',
+                                  style: TextStyle(
+                                    fontSize: 10, 
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? AppColors.dark : null,
+                                  ),
+                                ),
+                              ).animate(onPlay: (controller) => controller.repeat())
+                               .shimmer(delay: 2.seconds, duration: 1.5.seconds, color: Colors.white60),
+                              const Spacer(),
+                              if (!auth.isAuthenticated)
+                                TextButton(
+                                  onPressed: () => context.push(AppRoutes.welcome),
+                                  child: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold)),
+                                ),
+                            ],
+                          ),
                         ],
                       ),
                     ),

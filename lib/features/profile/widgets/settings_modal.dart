@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../../app/constants.dart';
+import '../../../app/routes.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../generated/l10n/app_localizations.dart';
 
 class SettingsModal extends StatelessWidget {
@@ -10,6 +13,7 @@ class SettingsModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettings>();
+    final auth = context.watch<AuthProvider>();
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -80,6 +84,38 @@ class SettingsModal extends StatelessWidget {
               ),
             ],
           ),
+
+          const SizedBox(height: 32),
+
+          // Sign Out Button
+          if (auth.isAuthenticated)
+            GestureDetector(
+              onTap: () async {
+                await auth.signOut();
+                if (context.mounted) {
+                  Navigator.pop(context); // close bottom sheet
+                  context.go(AppRoutes.welcome);
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Text(
+                    'Sign Out',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           
           const SizedBox(height: 48),
         ],
