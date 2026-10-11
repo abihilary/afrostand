@@ -26,4 +26,9 @@ class AppAssets {
 class AppConstants {
   static const String appName = 'AFROSTAND';
   static const String tagline = 'La mode africaine, autrement.';
+  
+  // Supabase Configuration
+  // Replace these with your actual Supabase project credentials
+  static const String supabaseUrl = 'YOUR_SUPABASE_URL';
+  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
 }

@@ -1,0 +1,165 @@
+[
+  {
+    "name": "Boubou Wax Royal",
+    "creator": "MIDE Stores",
+    "price": 8000,
+    "image_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop",
+    "is_new": true,
+    "tags": ["Wax", "Royal", "MIDE", "Habits", "Dakar"]
+  },
+  {
+    "name": "Ensemble Ankara",
+    "creator": "Aïsha K.",
+    "price": 12500,
+    "image_url": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop",
+    "discount": "30%",
+    "tags": ["Ankara", "Ensemble", "Habits"]
+  },
+  {
+    "name": "Tunique Kente",
+    "creator": "Ghanart",
+    "price": 10500,
+    "image_url": "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=800&auto=format&fit=crop",
+    "tags": ["Kente", "Tunique", "Handmade"]
+  },
+  {
+    "name": "Sac Raphia Tressé",
+    "creator": "Atelier Dakar",
+    "price": 9800,
+    "image_url": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop",
+    "tags": ["Raphia", "Sac", "Sustainable"]
+  },
+  {
+    "name": "Sandales Cuir Bio",
+    "creator": "Maro Dakar",
+    "price": 7400,
+    "image_url": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=800&auto=format&fit=crop",
+    "is_new": true,
+    "tags": ["Cuir", "Bio", "Sandales", "Sustainable"]
+  },
+  {
+    "name": "Boucles Cauri Gold",
+    "creator": "Bijoux Baobab",
+    "price": 3200,
+    "image_url": "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?q=80&w=800&auto=format&fit=crop",
+    "is_new": true,
+    "tags": ["Bijoux", "Cauri", "Gold", "Cadeau"]
+  },
+  {
+    "name": "Chemise Bogolan",
+    "creator": "MIDE Stores",
+    "price": 6500,
+    "image_url": "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=800&auto=format&fit=crop",
+    "tags": ["Bogolan", "Chemise", "Cadeau"]
+  },
+  {
+    "name": "Tableau Batik",
+    "creator": "Galerie Nomade",
+    "price": 32000,
+    "image_url": "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?q=80&w=800&auto=format&fit=crop",
+    "tags": ["Batik", "Tableau", "Art", "Handmade"]
+  },
+  {
+    "name": "Poupée Akan",
+    "creator": "Heritage",
+    "price": 6000,
+    "image_url": "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?q=80&w=800&auto=format&fit=crop",
+    "tags": ["Akan", "Handmade", "Cadeau"]
+  },
+  {
+    "name": "Robe Indigo",
+    "creator": "Indigo Studio",
+    "price": 14200,
+    "image_url": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop",
+    "tags": ["Indigo", "Robe", "Wax"]
+  },
+  {
+    "name": "Veste Bogolan",
+    "creator": "MIDE Stores",
+    "price": 18000,
+    "image_url": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Jupe Plissée Wax",
+    "creator": "Aïsha K.",
+    "price": 7500,
+    "image_url": "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Panier Osier",
+    "creator": "Nature Art",
+    "price": 5200,
+    "image_url": "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Ceinture Jute",
+    "creator": "Eco Wear",
+    "price": 3500,
+    "image_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Tote Bag Coton",
+    "creator": "Atelier Dakar",
+    "price": 4000,
+    "image_url": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Pochette Sisal",
+    "creator": "Nature Art",
+    "price": 6800,
+    "image_url": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop",
+    "is_new": true
+  },
+  {
+    "name": "Masque Sculpté",
+    "creator": "Heritage",
+    "price": 25000,
+    "image_url": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop",
+    "discount": "15%"
+  },
+  {
+    "name": "Écharpe Soie Sauvage",
+    "creator": "Artisanat Mali",
+    "price": 12000,
+    "image_url": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Bougie Parfumée",
+    "creator": "Dakar Scent",
+    "price": 4500,
+    "image_url": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Coffret Épices",
+    "creator": "Terroir",
+    "price": 8900,
+    "image_url": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop",
+    "is_new": true
+  },
+  {
+    "name": "Tissage Traditionnel",
+    "creator": "Kente Craft",
+    "price": 15000,
+    "image_url": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop",
+    "is_new": true
+  },
+  {
+    "name": "Potterie Artisanale",
+    "creator": "Dakar Art",
+    "price": 4500,
+    "image_url": "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Vase Céramique",
+    "creator": "Dakar Art",
+    "price": 9500,
+    "image_url": "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Statue Bronze",
+    "creator": "Heritage",
+    "price": 45000,
+    "image_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop",
+    "is_new": true
+  }
+]

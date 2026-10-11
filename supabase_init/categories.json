@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Local",
+    "slug": "local",
+    "image_url": "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=800&auto=format&fit=crop",
+    "description": "New Collection - Mode locale authentique"
+  },
+  {
+    "name": "Sustainable",
+    "slug": "sustainable",
+    "image_url": "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?q=80&w=800&auto=format&fit=crop",
+    "description": "Eco-Fashion 2025 - Mode éthique et durable"
+  },
+  {
+    "name": "Gift",
+    "slug": "gift",
+    "image_url": "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?q=80&w=800&auto=format&fit=crop",
+    "description": "Cadeaux Uniques - Offrez le meilleur de l’artisanat"
+  },
+  {
+    "name": "Handmade",
+    "slug": "handmade",
+    "image_url": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop",
+    "description": "Savoir-faire Manuel - Chaque pièce est unique"
+  },
+  {
+    "name": "Wax",
+    "slug": "wax",
+    "image_url": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Bijoux",
+    "slug": "bijoux",
+    "image_url": "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Cuir",
+    "slug": "cuir",
+    "image_url": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    "name": "Raphia",
+    "slug": "raphia",
+    "image_url": "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=800&auto=format&fit=crop"
+  }
+]
