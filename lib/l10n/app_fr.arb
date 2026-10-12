@@ -179,5 +179,6 @@
   "addComment": "Ajouter un commentaire...",
   "uploadingImage": "Envoi de la photo...",
   "priceLabel": "Prix (FCFA)",
-  "productName": "Nom de l'article"
+  "productName": "Nom de l'article",
+  "paymentMethods": "Moyens de paiement"
 }

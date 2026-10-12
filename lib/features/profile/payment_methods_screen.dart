@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../app/constants.dart';
+import '../../app/routes.dart';
+import '../../core/providers/shop_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
+import '../../shared/models/models.dart';
 
+/// Saved ways to pay.
+///
+/// Stores a label and a masked display string and nothing else. No card
+/// numbers, no mobile money PINs — when a real provider is connected the
+/// instrument lives with them, and this table only ever remembers which one
+/// the customer prefers.
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
 
@@ -11,158 +21,207 @@ class PaymentMethodsScreen extends StatefulWidget {
 }
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
-  final List<Map<String, String>> _methods = [
-    {'type': 'Visa', 'number': '•••• 4242', 'exp': '12/27'},
-    {'type': 'Wave', 'number': '+221 77 ••• •• 67', 'exp': ''},
-    {'type': 'Orange Money', 'number': '+221 78 ••• •• 10', 'exp': ''},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<ShopProvider>().load();
+    });
+  }
 
-  void _showAddPayment() {
-    showModalBottomSheet(
+  Future<void> _add() async {
+    final shop = context.read<ShopProvider>();
+    final l10n = AppLocalizations.of(context)!;
+    await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => _AddPaymentModal(onAdd: (method) {
-        setState(() => _methods.add(method));
-      }),
+      builder: (_) => _MethodSheet(shop: shop, l10n: l10n),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final shop = context.watch<ShopProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          l10n.payments,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
+        elevation: 0,
+        leading: BackButton(
+            onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.profile)),
+        title: Text(l10n.paymentMethods,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: _methods.length,
-              itemBuilder: (context, index) {
-                final method = _methods[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: theme.dividerColor),
-                  ),
-                  child: Row(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _add,
+        icon: const Icon(Icons.add_rounded),
+        label: Text(l10n.addPaymentMethod),
+      ),
+      body: shop.isLoading && shop.paymentMethods.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : shop.paymentMethods.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: _getColor(method['type']!),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          method['type']![0],
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(method['type']!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 4),
-                            Text(method['number']!, style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.black45)),
-                          ],
-                        ),
-                      ),
-                      if (method['exp']!.isNotEmpty)
-                        Text(method['exp']!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.hintColor)),
+                      Icon(Icons.credit_card_off_outlined, size: 48, color: theme.hintColor),
+                      const SizedBox(height: 16),
+                      Text(l10n.noPaymentMethods,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-            child: ElevatedButton(
-              onPressed: _showAddPayment,
-              child: const Text('Add Payment Method'),
-            ),
-          ),
-        ],
-      ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
+                  itemCount: shop.paymentMethods.length,
+                  itemBuilder: (context, i) {
+                    final m = shop.paymentMethods[i];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: m.isDefault ? AppColors.orange : theme.dividerColor),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(_icon(m.kind), size: 22, color: theme.hintColor),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(m.label,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w800, fontSize: 14)),
+                                if (m.masked != null)
+                                  Text(m.masked!,
+                                      style: TextStyle(
+                                          fontSize: 12, color: theme.hintColor)),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => shop.deletePaymentMethod(m.id),
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
     );
   }
 
-  Color _getColor(String type) {
-    if (type.contains('Visa')) return Colors.black;
-    if (type.contains('Wave')) return const Color(0xFF00A6FF);
-    if (type.contains('Orange')) return const Color(0xFFFF7900);
-    return Colors.grey;
-  }
+  IconData _icon(PaymentKind k) => switch (k) {
+        PaymentKind.card => Icons.credit_card_rounded,
+        PaymentKind.cashOnDelivery => Icons.payments_outlined,
+        PaymentKind.mobileMoney => Icons.phone_android_rounded,
+      };
 }
 
-class _AddPaymentModal extends StatelessWidget {
-  final Function(Map<String, String>) onAdd;
-  const _AddPaymentModal({required this.onAdd});
+class _MethodSheet extends StatefulWidget {
+  const _MethodSheet({required this.shop, required this.l10n});
+  final ShopProvider shop;
+  final AppLocalizations l10n;
+
+  @override
+  State<_MethodSheet> createState() => _MethodSheetState();
+}
+
+class _MethodSheetState extends State<_MethodSheet> {
+  final _label = TextEditingController();
+  final _masked = TextEditingController();
+  PaymentKind _kind = PaymentKind.mobileMoney;
+  bool _isDefault = false;
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _label.dispose();
+    _masked.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_label.text.trim().isEmpty) return;
+    setState(() => _saving = true);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await widget.shop.savePaymentMethod(
+        kind: _kind,
+        label: _label.text.trim(),
+        masked: _masked.text.trim().isEmpty ? null : _masked.text.trim(),
+        isDefault: _isDefault,
+      );
+      if (!mounted) return;
+      navigator.pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: EdgeInsets.only(
-        top: 24, left: 24, right: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-      ),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
+    final l10n = widget.l10n;
+    return Padding(
+      padding:
+          EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? Colors.white12 : Colors.black12, borderRadius: BorderRadius.circular(2)))),
-          const SizedBox(height: 24),
-          const Text('New Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 24),
-          const TextField(decoration: InputDecoration(hintText: 'Card Number or Mobile Number')),
+          Text(l10n.addPaymentMethod,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              const Expanded(child: TextField(decoration: InputDecoration(hintText: 'Expiry (MM/YY)'))),
-              const SizedBox(width: 16),
-              const Expanded(child: TextField(decoration: InputDecoration(hintText: 'CVV'))),
+          SegmentedButton<PaymentKind>(
+            segments: [
+              ButtonSegment(value: PaymentKind.mobileMoney, label: Text(l10n.mobileMoney)),
+              ButtonSegment(value: PaymentKind.card, label: Text(l10n.bankCard)),
+              ButtonSegment(
+                  value: PaymentKind.cashOnDelivery, label: Text(l10n.cashOnDelivery)),
             ],
+            selected: {_kind},
+            onSelectionChanged: (s) => setState(() => _kind = s.first),
           ),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () {
-              onAdd({
-                'type': 'Visa',
-                'number': '•••• 1234',
-                'exp': '10/28',
-              });
-              context.pop();
-            },
-            child: const Text('Save Method'),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _label,
+            decoration: const InputDecoration(
+                labelText: 'Orange Money, MTN MoMo...', border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _masked,
+            decoration: const InputDecoration(
+              // Explicitly the last digits, not the number. Nothing on this
+              // screen should ever hold a full instrument.
+              labelText: '•••• 1234',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          SwitchListTile(
+            value: _isDefault,
+            onChanged: (v) => setState(() => _isDefault = v),
+            title: Text(l10n.setDefault, style: const TextStyle(fontSize: 13)),
+            contentPadding: EdgeInsets.zero,
+          ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text(l10n.saveLabel),
+            ),
           ),
         ],
       ),

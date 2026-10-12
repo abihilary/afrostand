@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../app/constants.dart';
 import '../../app/routes.dart';
+import '../../core/providers/social_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
+import '../../shared/models/models.dart';
 import '../../shared/widgets/animated_pressable.dart';
-import '../../shared/widgets/typing_text.dart';
 
+/// The feed — full-screen posts, one per swipe.
+///
+/// Five hardcoded cards with two alternating stock images before this, and a
+/// comment sheet whose comments were a literal in the file. Now `posts`,
+/// `post_likes` and `post_comments`, all public to read and own-writes-only.
 class SocialSwipeScreen extends StatefulWidget {
   const SocialSwipeScreen({super.key});
 
@@ -15,340 +21,378 @@ class SocialSwipeScreen extends StatefulWidget {
 }
 
 class _SocialSwipeScreenState extends State<SocialSwipeScreen> {
-  final Map<int, bool> _likedPosts = {};
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<SocialProvider>().loadFeed();
+    });
+  }
 
-  void _showComments(BuildContext context) {
+  void _showComments(BuildContext context, Post post) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => const _CommentModal(),
+      builder: (_) => _CommentSheet(post: post),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final social = context.watch<SocialProvider>();
+
+    if (social.isLoading && social.feed.isEmpty) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (social.feed.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                social.hasError ? Icons.cloud_off_rounded : Icons.photo_library_outlined,
+                size: 48,
+                color: Colors.white38,
+              ),
+              const SizedBox(height: 16),
+              Text(social.hasError ? l10n.somethingWrong : l10n.nothingHere,
+                  style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: social.loadFeed,
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
+                child: Text(l10n.retry),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: PageView.builder(
-        scrollDirection: Axis.vertical,
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          final isLiked = _likedPosts[index] ?? false;
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              // Content Image
-              Image.network(
-                index % 2 == 0 ? AppAssets.model3 : AppAssets.model7,
-                fit: BoxFit.cover,
-              ),
-              
-              // Gradient Overlay
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.3),
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.7),
-                    ],
-                  ),
-                ),
-              ),
+      body: RefreshIndicator(
+        onRefresh: social.loadFeed,
+        child: PageView.builder(
+          scrollDirection: Axis.vertical,
+          itemCount: social.feed.length,
+          itemBuilder: (context, index) {
+            final post = social.feed[index];
+            return _PostCard(
+              post: post,
+              onLike: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                try {
+                  await social.toggleLike(post.id);
+                } catch (e) {
+                  if (!mounted) return;
+                  messenger.showSnackBar(SnackBar(content: Text('$e')));
+                }
+              },
+              onComment: () => _showComments(context, post),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
 
-              // Top Bar
-              Positioned(
-                top: 52,
-                left: 20,
-                right: 20,
+class _PostCard extends StatelessWidget {
+  const _PostCard({required this.post, required this.onLike, required this.onComment});
+
+  final Post post;
+  final VoidCallback onLike;
+  final VoidCallback onComment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.network(
+          post.imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => Container(color: Colors.grey.shade900),
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.black38, Colors.transparent, Colors.black87],
+              stops: [0, 0.4, 1],
+            ),
+          ),
+        ),
+        Positioned(
+          right: 16,
+          bottom: 120,
+          child: Column(
+            children: [
+              _action(
+                post.likedByMe ? Icons.favorite_rounded : Icons.favorite_outline_rounded,
+                '${post.likeCount}',
+                onLike,
+                color: post.likedByMe ? AppColors.orange : Colors.white,
+              ),
+              const SizedBox(height: 20),
+              _action(Icons.mode_comment_outlined, '${post.commentCount}', onComment),
+              const SizedBox(height: 20),
+              _action(Icons.share_outlined, '', () {}),
+            ],
+          ),
+        ),
+        Positioned(
+          left: 20,
+          right: 90,
+          bottom: 40,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AnimatedPressable(
+                onTap: () => context.push(AppRoutes.creatorProfile(post.creatorId)),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      l10n.swipeAndSlay,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundImage: post.creator?.avatarUrl != null
+                          ? NetworkImage(post.creator!.avatarUrl!)
+                          : null,
+                      child: post.creator?.avatarUrl == null
+                          ? Text(
+                              (post.creator?.name ?? '?').characters.first.toUpperCase(),
+                              style: const TextStyle(fontSize: 12),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        post.creator?.name ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
                       ),
                     ),
-                    Row(
-                      children: [
-                        _topAction(Icons.remove_red_eye_outlined),
-                        const SizedBox(width: 12),
-                        _topAction(Icons.more_horiz_rounded),
-                      ],
-                    ),
                   ],
                 ),
               ),
-
-              // Interaction Buttons
-              Positioned(
-                right: 20,
-                top: 0,
-                bottom: 0,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _interactionBtn(
-                      isLiked ? Icons.favorite_rounded : Icons.favorite_outline_rounded, 
-                      isLiked ? '2.5k' : '2.4k', 
-                      isActive: isLiked,
-                      onTap: () => setState(() => _likedPosts[index] = !isLiked),
+              if (post.caption != null) ...[
+                const SizedBox(height: 10),
+                Text(post.caption!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4)),
+              ],
+              if (post.productId != null) ...[
+                const SizedBox(height: 12),
+                AnimatedPressable(
+                  onTap: () => context.push(AppRoutes.productDetail(post.productId!)),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: AppColors.orange,
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    const SizedBox(height: 20),
-                    _interactionBtn(Icons.message_rounded, '128', onTap: () => _showComments(context)),
-                    const SizedBox(height: 20),
-                    _interactionBtn(Icons.share_rounded, l10n.share),
-                  ],
+                    child: const Text('Voir l\'article',
+                        style: TextStyle(
+                            color: AppColors.dark,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 12)),
+                  ),
                 ),
-              ),
-
-              // Bottom Info
-              Positioned(
-                bottom: 40,
-                left: 20,
-                right: 80,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        AnimatedPressable(
-                          onTap: () => context.push(AppRoutes.creatorProfile),
-                          child: const CircleAvatar(
-                            radius: 18,
-                            backgroundImage: NetworkImage(AppAssets.model2),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Aminata ${l10n.commentedOnLook}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AnimatedPressable(
-                            onTap: () => setState(() => _likedPosts[index] = true),
-                            child: Container(
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(22),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(l10n.adore, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: AnimatedPressable(
-                            onTap: () => _showComments(context),
-                            child: Container(
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(22),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(l10n.comment, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white)),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _topAction(IconData icon) {
-    return AnimatedPressable(
-      onTap: () {},
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          shape: BoxShape.circle,
+          ),
         ),
-        child: Icon(icon, color: Colors.white, size: 18),
-      ),
+      ],
     );
   }
 
-  Widget _interactionBtn(IconData icon, String label, {bool isActive = false, VoidCallback? onTap}) {
+  Widget _action(IconData icon, String label, VoidCallback onTap, {Color color = Colors.white}) {
     return AnimatedPressable(
       onTap: onTap,
       child: Column(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10)],
+          Icon(icon, color: color, size: 30),
+          if (label.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(label,
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
             ),
-            child: Icon(
-              icon,
-              color: isActive ? AppColors.orange : AppColors.dark,
-              size: 20,
-            ),
-          ).animate(target: isActive ? 1 : 0).scale(begin: const Offset(1, 1), end: const Offset(1.2, 1.2), duration: 200.ms, curve: Curves.elasticOut),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-          ),
         ],
       ),
     );
   }
 }
 
-class _CommentModal extends StatefulWidget {
-  const _CommentModal();
+class _CommentSheet extends StatefulWidget {
+  const _CommentSheet({required this.post});
+  final Post post;
 
   @override
-  State<_CommentModal> createState() => _CommentModalState();
+  State<_CommentSheet> createState() => _CommentSheetState();
 }
 
-class _CommentModalState extends State<_CommentModal> {
-  final TextEditingController _commentController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final List<Map<String, String>> _comments = [
-    {"user": "James Lee", "text": "Incroyable ce look ! 🔥", "avatar": AppAssets.model4},
-    {"user": "Fatou N.", "text": "Où as-tu acheté le sac ?", "avatar": AppAssets.model8},
-    {"user": "Creative Studio", "text": "Magnifique travail d'artisanat.", "avatar": AppAssets.model5},
-  ];
+class _CommentSheetState extends State<_CommentSheet> {
+  final _controller = TextEditingController();
+  List<PostComment> _comments = [];
+  bool _loading = true;
+  bool _sending = false;
 
-  void _sendComment() {
-    if (_commentController.text.trim().isEmpty) return;
-    setState(() {
-      _comments.add({
-        "user": "Aminata",
-        "text": _commentController.text.trim(),
-        "avatar": AppAssets.model2,
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final c = await context.read<SocialProvider>().comments(widget.post.id);
+      if (!mounted) return;
+      setState(() {
+        _comments = c;
+        _loading = false;
       });
-      _commentController.clear();
-    });
-    
-    // Scroll to bottom
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _send() async {
+    final body = _controller.text.trim();
+    if (body.isEmpty || _sending) return;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _sending = true);
+    _controller.clear();
+    try {
+      final c = await context.read<SocialProvider>().comment(widget.post.id, body);
+      if (!mounted) return;
+      setState(() => _comments = [..._comments, c]);
+    } catch (e) {
+      if (!mounted) return;
+      _controller.text = body;
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
   }
 
   @override
   void dispose() {
-    _commentController.dispose();
-    _scrollController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
-
+    final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-        height: 500,
+        height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? Colors.white12 : Colors.black12, borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 24),
-            Text(l10n.comment, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: _comments.length,
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CircleAvatar(
-                        radius: 16, 
-                        backgroundImage: NetworkImage(_comments[index]["avatar"]!),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(_comments[index]["user"]!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                            Text(_comments[index]["text"]!, style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ).animate().fade(delay: (index * 100).ms).slideX(begin: 0.1),
-                ),
-              ),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: theme.dividerColor, borderRadius: BorderRadius.circular(2)),
             ),
-            const Divider(),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _commentController,
-                    onSubmitted: (_) => _sendComment(),
-                    decoration: InputDecoration(
-                      hintText: '${l10n.writeMessage}...',
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      fillColor: Colors.transparent,
+            Text(l10n.commentsTitle,
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+            const SizedBox(height: 8),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _comments.isEmpty
+                      ? Center(
+                          child: Text(l10n.noComments,
+                              style: TextStyle(color: theme.hintColor)))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: _comments.length,
+                          itemBuilder: (context, i) {
+                            final c = _comments[i];
+                            final name = c.author?.fullName ?? 'AfroStand';
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundImage: c.author?.avatarUrl != null
+                                        ? NetworkImage(c.author!.avatarUrl!)
+                                        : null,
+                                    child: c.author?.avatarUrl == null
+                                        ? Text(name.characters.first.toUpperCase(),
+                                            style: const TextStyle(fontSize: 12))
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(name,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.w800, fontSize: 12)),
+                                        Text(c.body,
+                                            style: const TextStyle(fontSize: 13, height: 1.4)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _send(),
+                      decoration: InputDecoration(
+                        hintText: l10n.addComment,
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide(color: theme.dividerColor)),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
                     ),
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                   ),
-                ),
-                AnimatedPressable(
-                  onTap: _sendComment,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Text(l10n.send, style: const TextStyle(color: AppColors.orange, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    onPressed: _sending ? null : _send,
+                    icon: const Icon(Icons.send_rounded, size: 18),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

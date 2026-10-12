@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../app/constants.dart';
+import '../../app/routes.dart';
+import '../../core/providers/shop_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
+import '../../shared/models/models.dart';
 
+/// Delivery addresses.
+///
+/// Owner-scoped by RLS, so the list query carries no `user_id` filter — one
+/// that the client added could be removed by patching the client, and a policy
+/// cannot.
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({super.key});
 
@@ -11,161 +20,238 @@ class AddressesScreen extends StatefulWidget {
 }
 
 class _AddressesScreenState extends State<AddressesScreen> {
-  final List<Map<String, String>> _addresses = [
-    {
-      'type': 'Home',
-      'address': 'Villa 12, Almadies, Dakar',
-      'phone': '+221 77 123 45 67',
-    },
-    {
-      'type': 'Office',
-      'address': 'Immeuble SDI, Plateau, Dakar',
-      'phone': '+221 33 821 10 10',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<ShopProvider>().load();
+    });
+  }
 
-  void _showAddAddress() {
-    showModalBottomSheet(
+  Future<void> _edit({Address? existing}) async {
+    final shop = context.read<ShopProvider>();
+    final l10n = AppLocalizations.of(context)!;
+    await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => _AddAddressModal(onAdd: (addr) {
-        setState(() => _addresses.add(addr));
-      }),
+      builder: (_) => _AddressSheet(existing: existing, shop: shop, l10n: l10n),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final shop = context.watch<ShopProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          l10n.addresses,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
+        elevation: 0,
+        leading: BackButton(
+            onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.profile)),
+        title: Text(l10n.addresses,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: _addresses.length,
-              itemBuilder: (context, index) {
-                final addr = _addresses[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: theme.dividerColor),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _edit(),
+        icon: const Icon(Icons.add_rounded),
+        label: Text(l10n.addAddress),
+      ),
+      body: shop.isLoading && shop.addresses.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : shop.addresses.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppColors.orange.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          addr['type'] == 'Home' ? Icons.home_filled : Icons.business_rounded,
-                          color: AppColors.orange,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(addr['type']!, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 8),
-                            Text(addr['address']!, style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, height: 1.5)),
-                            const SizedBox(height: 4),
-                            Text(addr['phone']!, style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.black45)),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.more_vert_rounded, size: 20),
-                        onPressed: () {},
-                      ),
+                      Icon(Icons.location_off_outlined, size: 48, color: theme.hintColor),
+                      const SizedBox(height: 16),
+                      Text(l10n.noAddresses,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-            child: ElevatedButton(
-              onPressed: _showAddAddress,
-              child: const Text('Add New Address'),
-            ),
-          ),
-        ],
-      ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
+                  itemCount: shop.addresses.length,
+                  itemBuilder: (context, i) {
+                    final a = shop.addresses[i];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: a.isDefault ? AppColors.orange : theme.dividerColor),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(a.fullName,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w800, fontSize: 14)),
+                                    if (a.isDefault) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.orange.withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(l10n.setDefault,
+                                            style: const TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w900,
+                                                color: AppColors.orange)),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                Text(a.oneLine,
+                                    style:
+                                        TextStyle(fontSize: 12, color: theme.hintColor)),
+                                Text(a.phone,
+                                    style:
+                                        TextStyle(fontSize: 12, color: theme.hintColor)),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => _edit(existing: a),
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                          ),
+                          IconButton(
+                            onPressed: () => shop.deleteAddress(a.id),
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }
 
-class _AddAddressModal extends StatelessWidget {
-  final Function(Map<String, String>) onAdd;
-  const _AddAddressModal({required this.onAdd});
+class _AddressSheet extends StatefulWidget {
+  const _AddressSheet({this.existing, required this.shop, required this.l10n});
+  final Address? existing;
+  final ShopProvider shop;
+  final AppLocalizations l10n;
+
+  @override
+  State<_AddressSheet> createState() => _AddressSheetState();
+}
+
+class _AddressSheetState extends State<_AddressSheet> {
+  late final _name = TextEditingController(text: widget.existing?.fullName);
+  late final _phone = TextEditingController(text: widget.existing?.phone);
+  late final _line1 = TextEditingController(text: widget.existing?.line1);
+  late final _city = TextEditingController(text: widget.existing?.city);
+  late bool _isDefault = widget.existing?.isDefault ?? false;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _phone.dispose();
+    _line1.dispose();
+    _city.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final l10n = widget.l10n;
+    if (_name.text.trim().isEmpty ||
+        _phone.text.trim().isEmpty ||
+        _line1.text.trim().isEmpty ||
+        _city.text.trim().isEmpty) {
+      setState(() => _error = l10n.somethingWrong);
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    final navigator = Navigator.of(context);
+    try {
+      await widget.shop.saveAddress(
+        id: widget.existing?.id,
+        fullName: _name.text.trim(),
+        phone: _phone.text.trim(),
+        line1: _line1.text.trim(),
+        city: _city.text.trim(),
+        isDefault: _isDefault,
+      );
+      if (!mounted) return;
+      navigator.pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _saving = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: EdgeInsets.only(
-        top: 24, left: 24, right: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-      ),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
+    final l10n = widget.l10n;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? Colors.white12 : Colors.black12, borderRadius: BorderRadius.circular(2)))),
-          const SizedBox(height: 24),
-          const Text('New Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 24),
-          const TextField(decoration: InputDecoration(hintText: 'Address Name (e.g. Home)')),
+          Text(widget.existing == null ? l10n.addAddress : l10n.editAddress,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
           const SizedBox(height: 16),
-          const TextField(decoration: InputDecoration(hintText: 'Street, Villa, Apartment')),
-          const SizedBox(height: 16),
-          const TextField(decoration: InputDecoration(hintText: 'Phone Number')),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () {
-              onAdd({
-                'type': 'New Location',
-                'address': 'Dakar, Sénégal',
-                'phone': '+221 70 000 00 00',
-              });
-              context.pop();
-            },
-            child: const Text('Save Address'),
+          _field(_name, l10n.fullNameLabel),
+          _field(_phone, l10n.phoneLabel, keyboard: TextInputType.phone),
+          _field(_line1, l10n.addressLine),
+          _field(_city, l10n.cityLabel),
+          SwitchListTile(
+            value: _isDefault,
+            onChanged: (v) => setState(() => _isDefault = v),
+            title: Text(l10n.setDefault, style: const TextStyle(fontSize: 13)),
+            contentPadding: EdgeInsets.zero,
+          ),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(_error!, style: const TextStyle(color: Colors.amber, fontSize: 12)),
+            ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text(l10n.saveLabel),
+            ),
           ),
         ],
       ),
     );
   }
+
+  Widget _field(TextEditingController c, String label, {TextInputType? keyboard}) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: TextField(
+          controller: c,
+          keyboardType: keyboard,
+          decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+        ),
+      );
 }

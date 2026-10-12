@@ -517,4 +517,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get productName => 'Item name';
+
+  @override
+  String get paymentMethods => 'Payment methods';
 }

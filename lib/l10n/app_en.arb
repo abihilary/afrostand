@@ -179,5 +179,6 @@
   "addComment": "Add a comment...",
   "uploadingImage": "Uploading the photo...",
   "priceLabel": "Price (FCFA)",
-  "productName": "Item name"
+  "productName": "Item name",
+  "paymentMethods": "Payment methods"
 }

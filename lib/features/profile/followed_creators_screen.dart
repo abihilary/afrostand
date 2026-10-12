@@ -1,93 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../app/constants.dart';
+import 'package:provider/provider.dart';
 import '../../app/routes.dart';
+import '../../core/providers/social_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
-import '../../shared/widgets/animated_pressable.dart';
 
-class FollowedCreatorsScreen extends StatelessWidget {
+/// The shops you follow.
+class FollowedCreatorsScreen extends StatefulWidget {
   const FollowedCreatorsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
+  State<FollowedCreatorsScreen> createState() => _FollowedCreatorsScreenState();
+}
 
-    final List<Map<String, String>> creators = [
-      {'name': 'MIDE Stores', 'avatar': AppAssets.model2, 'location': 'Dakar, Sénégal'},
-      {'name': 'Aïsha K.', 'avatar': AppAssets.model4, 'location': 'Bamako, Mali'},
-      {'name': 'Atelier Dakar', 'avatar': AppAssets.model6, 'location': 'Dakar, Sénégal'},
-      {'name': 'Ghanart', 'avatar': AppAssets.model1, 'location': 'Accra, Ghana'},
-    ];
+class _FollowedCreatorsScreenState extends State<FollowedCreatorsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<SocialProvider>().loadFollowed();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final social = context.watch<SocialProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          l10n.followedCreators,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
+        elevation: 0,
+        leading: BackButton(
+            onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.profile)),
+        title: Text(l10n.followedCreators,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: creators.length,
-        itemBuilder: (context, index) {
-          final creator = creators[index];
-          return AnimatedPressable(
-            onTap: () => context.push(AppRoutes.creatorProfile),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: theme.dividerColor),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundImage: NetworkImage(creator['avatar']!),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(creator['name']!, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.verified_rounded, size: 14, color: Colors.blue),
-                          ],
+      body: RefreshIndicator(
+        onRefresh: social.loadFollowed,
+        child: social.isLoading && social.followedCreators.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : social.followedCreators.isEmpty
+                ? ListView(
+                    children: [
+                      const SizedBox(height: 140),
+                      Icon(Icons.storefront_outlined, size: 48, color: theme.hintColor),
+                      const SizedBox(height: 16),
+                      Center(
+                          child: Text(l10n.noFollowed,
+                              style: const TextStyle(fontWeight: FontWeight.w700))),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () => context.go(AppRoutes.creators),
+                          child: Text(l10n.discover),
                         ),
-                        Text(creator['location']!, style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.black45)),
-                      ],
-                    ),
+                      ),
+                    ],
+                  )
+                : ListView.separated(
+                    itemCount: social.followedCreators.length,
+                    separatorBuilder: (_, _) =>
+                        Divider(height: 1, color: theme.dividerColor),
+                    itemBuilder: (context, i) {
+                      final c = social.followedCreators[i];
+                      return ListTile(
+                        onTap: () => context.push(AppRoutes.creatorProfile(c.id)),
+                        leading: CircleAvatar(
+                          backgroundImage:
+                              c.avatarUrl != null ? NetworkImage(c.avatarUrl!) : null,
+                          child: c.avatarUrl == null
+                              ? Text(c.name.characters.first.toUpperCase())
+                              : null,
+                        ),
+                        title: Text(c.name,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 14)),
+                        subtitle: Text(
+                          [
+                            if (c.location != null) c.location!,
+                            '${c.followerCount} ${l10n.followers}',
+                          ].join(' • '),
+                          style: TextStyle(fontSize: 12, color: theme.hintColor),
+                        ),
+                        trailing: TextButton(
+                          onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            try {
+                              await social.toggleFollow(c.id);
+                              await social.loadFollowed();
+                            } catch (e) {
+                              if (!mounted) return;
+                              messenger.showSnackBar(SnackBar(content: Text('$e')));
+                            }
+                          },
+                          child: Text(l10n.unfollow),
+                        ),
+                      );
+                    },
                   ),
-                  OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(80, 32),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      side: BorderSide(color: isDark ? AppColors.orange : AppColors.dark),
-                    ),
-                    child: Text(
-                      'Unfollow',
-                      style: TextStyle(fontSize: 11, color: isDark ? AppColors.orange : AppColors.dark),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
       ),
     );
   }

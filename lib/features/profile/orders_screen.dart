@@ -1,116 +1,182 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../app/constants.dart';
+import '../../app/routes.dart';
+import '../../core/providers/orders_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
+import '../../shared/models/models.dart';
 
-class OrdersScreen extends StatelessWidget {
+/// Past and current orders.
+class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
 
-    final List<Map<String, dynamic>> orders = [
-      {'id': '#AF-8271', 'date': '12 Oct 2024', 'total': '18 500 FCFA', 'status': 'Delivered', 'items': 3},
-      {'id': '#AF-7162', 'date': '04 Oct 2024', 'total': '12 000 FCFA', 'status': 'Shipped', 'items': 1},
-      {'id': '#AF-6051', 'date': '28 Sep 2024', 'total': '45 000 FCFA', 'status': 'Processing', 'items': 5},
-    ];
+class _OrdersScreenState extends State<OrdersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<OrdersProvider>().load();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final orders = context.watch<OrdersProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          l10n.myOrders,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
+        elevation: 0,
+        leading: BackButton(
+            onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.profile)),
+        title: Text(l10n.orders,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: orders.length,
-        itemBuilder: (context, index) {
-          final order = orders[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: theme.dividerColor),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(order['id'], style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 4),
-                        Text(order['date'], style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.black45)),
-                      ],
-                    ),
-                    _statusBadge(order['status']),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Divider(color: theme.dividerColor),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${order['items']} ${l10n.items}',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      order['total'],
-                      style: TextStyle(
-                        fontSize: 15, 
-                        fontWeight: FontWeight.w900,
-                        color: isDark ? AppColors.orange : AppColors.dark,
+      body: RefreshIndicator(
+        onRefresh: orders.load,
+        child: orders.isLoading && orders.orders.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : orders.orders.isEmpty
+                ? ListView(
+                    children: [
+                      const SizedBox(height: 140),
+                      Icon(Icons.receipt_long_outlined, size: 48, color: theme.hintColor),
+                      const SizedBox(height: 16),
+                      Center(
+                          child: Text(orders.hasError ? l10n.somethingWrong : l10n.emptyOrders,
+                              style: const TextStyle(fontWeight: FontWeight.w700))),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () => context.go(AppRoutes.home),
+                          child: Text(l10n.discover),
+                        ),
                       ),
+                    ],
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: orders.orders.length,
+                    itemBuilder: (context, i) => _orderCard(orders.orders[i], orders, l10n, theme),
+                  ),
+      ),
+    );
+  }
+
+  Widget _orderCard(Order o, OrdersProvider orders, AppLocalizations l10n, ThemeData theme) {
+    final (label, color) = _status(o.status, l10n);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(o.code,
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(label,
+                    style: TextStyle(
+                        color: color, fontSize: 10, fontWeight: FontWeight.w900)),
+              ),
+            ],
+          ),
+          if (o.createdAt != null)
+            Text(
+              '${o.createdAt!.day}/${o.createdAt!.month}/${o.createdAt!.year}',
+              style: TextStyle(fontSize: 11, color: theme.hintColor),
+            ),
+          const SizedBox(height: 12),
+          ...o.items.take(3).map((i) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    if (i.imageUrl != null)
+                      Container(
+                        width: 34,
+                        height: 34,
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                              image: NetworkImage(i.imageUrl!), fit: BoxFit.cover),
+                        ),
+                      ),
+                    Expanded(
+                      child: Text('${i.name} ×${i.qty}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     ),
+                    Text('${formatXaf(i.lineTotalXaf)} FCFA',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                   ],
                 ),
-              ],
+              )),
+          if (o.items.length > 3)
+            Text('+${o.items.length - 3}',
+                style: TextStyle(fontSize: 11, color: theme.hintColor)),
+          Divider(color: theme.dividerColor),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(l10n.orderTotal,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+              Text('${o.totalLabel} FCFA',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+            ],
+          ),
+          // Cancellable only while it can still be stopped. The SQL enforces
+          // the same thing, so a stale screen cannot cancel a delivered order.
+          if (o.status == OrderStatus.pending || o.status == OrderStatus.paid) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    await orders.cancel(o.id);
+                  } catch (e) {
+                    if (!mounted) return;
+                    messenger.showSnackBar(SnackBar(content: Text('$e')));
+                  }
+                },
+                child: Text(l10n.cancelOrder),
+              ),
             ),
-          );
-        },
+          ],
+        ],
       ),
     );
   }
 
-  Widget _statusBadge(String status) {
-    Color color;
-    switch (status) {
-      case 'Delivered':
-        color = Colors.green;
-        break;
-      case 'Shipped':
-        color = Colors.blue;
-        break;
-      default:
-        color = Colors.orange;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w800),
-      ),
-    );
-  }
+  (String, Color) _status(OrderStatus s, AppLocalizations l10n) => switch (s) {
+        OrderStatus.pending => (l10n.paymentPending.toUpperCase(), Colors.amber),
+        OrderStatus.paid => (l10n.orderPlaced.toUpperCase(), AppColors.orange),
+        OrderStatus.shipped => ('EXPÉDIÉE', Colors.blue),
+        OrderStatus.delivered => ('LIVRÉE', Colors.green),
+        OrderStatus.cancelled => ('ANNULÉE', Colors.grey),
+        OrderStatus.refunded => ('REMBOURSÉE', Colors.grey),
+      };
 }

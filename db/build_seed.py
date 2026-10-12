@@ -133,11 +133,30 @@ def main() -> None:
             f"{q(bool(p.get('is_new', False)))}) on conflict (id) do nothing;"
         )
 
+    # Posts, so the feed is not empty on a fresh install. Each one is a real
+    # shop showing a real product it actually sells - the same relationship a
+    # genuine post would have. Not invented content: the caption is the product
+    # name and the image is the product's own.
+    out.append("")
+    out.append("-- posts: each seeded shop showing one of its own products")
+    seen = set()
+    for pr in prods:
+        if pr["creator"] in seen:
+            continue
+        seen.add(pr["creator"])
+        pid = uid("product", slugify(pr["creator"]) + "/" + slugify(pr["name"]))
+        out.append(
+            "insert into posts (id, creator_id, product_id, image_url, caption) values ("
+            f"{q(uid('post', slugify(pr['creator']) + '/' + slugify(pr['name'])))}, "
+            f"{q(creator_by_name[pr['creator']])}, {q(pid)}, {q(pr['image_url'])}, "
+            f"{q(pr['name'])}) on conflict (id) do nothing;"
+        )
+
     OUT.write_text("\n".join(out) + "\n", encoding="utf-8")
     print(
         f"wrote {OUT.relative_to(ROOT)} - "
         f"{len(cats)} categories, {len(creators)} creators, {len(prods)} products "
-        f"({unmatched} with no category)"
+        f"({unmatched} with no category), {len(seen)} posts"
     )
 
 

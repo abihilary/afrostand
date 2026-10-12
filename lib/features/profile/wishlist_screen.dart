@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../app/constants.dart';
 import '../../app/routes.dart';
+import '../../core/providers/shop_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
-import '../../shared/models/product.dart';
+import '../../shared/models/models.dart';
 import '../../shared/widgets/animated_pressable.dart';
 
+/// Saved items.
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
 
@@ -15,129 +17,143 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  final List<Product> _wishlistItems = allMockProducts.take(3).toList();
-
-  void _removeItem(int index) {
-    setState(() {
-      _wishlistItems.removeAt(index);
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<ShopProvider>().loadWishlist();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final shop = context.watch<ShopProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          l10n.wishlist,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
+        elevation: 0,
+        leading: BackButton(
+            onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.profile)),
+        title: Text(l10n.wishlist,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
       ),
-      body: _wishlistItems.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.favorite_border_rounded, size: 64, color: theme.dividerColor),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Your wishlist is empty',
-                    style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            )
-          : GridView.builder(
-              padding: const EdgeInsets.all(20),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.7,
-              ),
-              itemCount: _wishlistItems.length,
-              itemBuilder: (context, index) {
-                final product = _wishlistItems[index];
-                return Stack(
-                  children: [
-                    AnimatedPressable(
-                      onTap: () => context.push('${AppRoutes.home}/${AppRoutes.productDetail}'),
-                      child: _productCard(product),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () => _removeItem(index),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+      body: RefreshIndicator(
+        onRefresh: shop.loadWishlist,
+        child: shop.isLoading && shop.wishlist.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : shop.wishlist.isEmpty
+                ? ListView(
+                    children: [
+                      const SizedBox(height: 140),
+                      Icon(Icons.favorite_outline_rounded, size: 48, color: theme.hintColor),
+                      const SizedBox(height: 16),
+                      Center(
+                          child: Text(shop.hasError ? l10n.somethingWrong : l10n.emptyWishlist,
+                              style: const TextStyle(fontWeight: FontWeight.w700))),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () => context.go(AppRoutes.home),
+                          child: Text(l10n.discover),
                         ),
                       ),
+                    ],
+                  )
+                : GridView.builder(
+                    padding: const EdgeInsets.all(20),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio: 0.66,
                     ),
-                  ],
-                ).animate().fade(delay: (index * 100).ms).scale(begin: const Offset(0.9, 0.9));
-              },
-            ),
+                    itemCount: shop.wishlist.length,
+                    itemBuilder: (context, i) => _tile(shop.wishlist[i], shop, theme, l10n),
+                  ),
+      ),
     );
   }
 
-  Widget _productCard(Product product) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      clipBehavior: Clip.antiAlias,
+  Widget _tile(Product p, ShopProvider shop, ThemeData theme, AppLocalizations l10n) {
+    return AnimatedPressable(
+      onTap: () => context.push(AppRoutes.productDetail(p.id)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Image.network(product.image, fit: BoxFit.cover, width: double.infinity),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
               children: [
-                Text(
-                  product.name,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, height: 1.2),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: theme.dividerColor,
+                    image: p.imageUrl.isEmpty
+                        ? null
+                        : DecorationImage(image: NetworkImage(p.imageUrl), fit: BoxFit.cover),
+                  ),
                 ),
-                Text(
-                  product.creator,
-                  style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black.withOpacity(0.4), fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${product.price} FCFA',
-                  style: TextStyle(
-                    fontSize: 13, 
-                    fontWeight: FontWeight.w900,
-                    color: isDark ? AppColors.orange : AppColors.dark,
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: GestureDetector(
+                    onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      try {
+                        await shop.toggleWishlist(p.id);
+                        await shop.loadWishlist();
+                      } catch (e) {
+                        if (!mounted) return;
+                        messenger.showSnackBar(SnackBar(content: Text('$e')));
+                      }
+                    },
+                    child: CircleAvatar(
+                      radius: 15,
+                      backgroundColor: Colors.black54,
+                      child: const Icon(Icons.favorite_rounded,
+                          size: 15, color: AppColors.orange),
+                    ),
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 8),
+          Text(p.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+          Text(p.creatorName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11, color: theme.hintColor)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Text('${p.effectivePriceLabel} FCFA',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+              const Spacer(),
+              GestureDetector(
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    await shop.addToCart(p);
+                    if (!mounted) return;
+                    messenger.showSnackBar(SnackBar(
+                        content: Text(l10n.addedToCart),
+                        behavior: SnackBarBehavior.floating));
+                  } catch (e) {
+                    if (!mounted) return;
+                    messenger.showSnackBar(SnackBar(content: Text('$e')));
+                  }
+                },
+                child: const Icon(Icons.add_shopping_cart_rounded, size: 18),
+              ),
+            ],
           ),
         ],
       ),
