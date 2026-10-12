@@ -5,6 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../app/constants.dart';
 import '../../app/routes.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/orders_provider.dart';
+import '../../core/providers/profile_provider.dart';
+import '../../core/providers/shop_provider.dart';
+import '../../core/providers/social_provider.dart';
+import '../../shared/models/models.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/widgets/animated_pressable.dart';
 import 'widgets/settings_modal.dart';
@@ -28,6 +33,10 @@ class ProfileScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final auth = context.watch<AuthProvider>();
     final user = auth.currentUser;
+    final profile = context.watch<ProfileProvider>();
+    final shop = context.watch<ShopProvider>();
+    final orders = context.watch<OrdersProvider>();
+    final social = context.watch<SocialProvider>();
 
     final fullName = user?.userMetadata?['full_name'] ?? user?.email?.split('@').first ?? 'Aminata Diallo';
     final email = user?.email ?? 'aminata@email.com • Dakar';
@@ -49,8 +58,21 @@ class ProfileScreen extends StatelessWidget {
                       height: 64,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        image: const DecorationImage(image: NetworkImage(AppAssets.model2), fit: BoxFit.cover),
+                        color: theme.dividerColor,
+                        image: profile.me?.avatarUrl == null
+                            ? null
+                            : DecorationImage(
+                                image: NetworkImage(profile.me!.avatarUrl!),
+                                fit: BoxFit.cover),
                       ),
+                      alignment: Alignment.center,
+                      child: profile.me?.avatarUrl != null
+                          ? null
+                          : Text(
+                              profile.displayName.characters.first.toUpperCase(),
+                              style: const TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.w900),
+                            ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -83,7 +105,15 @@ class ProfileScreen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  auth.isAuthenticated ? '${l10n.memberGold} • 320 ${l10n.points}' : 'GUEST',
+                                  !auth.isAuthenticated
+                                      ? 'GUEST'
+                                      : switch (profile.creatorStatus) {
+                                          CreatorStatus.approved =>
+                                            l10n.myShop.toUpperCase(),
+                                          CreatorStatus.requested =>
+                                            l10n.creatorRequested.toUpperCase(),
+                                          _ => l10n.verified.toUpperCase(),
+                                        },
                                   style: TextStyle(
                                     fontSize: 10, 
                                     fontWeight: FontWeight.w800,
@@ -108,9 +138,10 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    _profileStat(context, '12', l10n.orders),
-                    _profileStat(context, '34', l10n.favorites),
-                    _profileStat(context, '5', l10n.followedCreators),
+                    _profileStat(context, '${orders.orders.length}', l10n.orders),
+                    _profileStat(context, '${shop.wishlist.length}', l10n.favorites),
+                    _profileStat(
+                        context, '${social.followedCreators.length}', l10n.followedCreators),
                   ],
                 ).animate().fade(delay: 200.ms).slideY(begin: 0.2),
               ],
@@ -121,12 +152,13 @@ class ProfileScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                _menuItem(context, Icons.storefront_rounded, 'Creator Studio', 'Manage catalog & store', 0, onTap: () => context.push(AppRoutes.creatorDashboard)),
-                _menuItem(context, Icons.shopping_bag_outlined, l10n.myOrders, '3 ${l10n.inProgress}', 1, onTap: () => context.push(AppRoutes.orders)),
-                _menuItem(context, Icons.favorite_outline_rounded, l10n.wishlist, '34 ${l10n.items}', 2, onTap: () => context.push(AppRoutes.wishlist)),
-                _menuItem(context, Icons.location_on_outlined, l10n.addresses, '2 ${l10n.addresses.toLowerCase()}', 3, onTap: () => context.push(AppRoutes.addresses)),
-                _menuItem(context, Icons.credit_card_rounded, l10n.payments, 'Wave • Visa', 4, onTap: () => context.push(AppRoutes.paymentMethods)),
-                _menuItem(context, Icons.grid_view_rounded, l10n.followedCreators, '5', 5, onTap: () => context.push(AppRoutes.followedCreators)),
+                _menuItem(context, Icons.storefront_rounded, l10n.myShop,
+                    profile.canSell ? '${profile.myProducts.length}' : l10n.becomeCreator, 0, onTap: () => context.push(AppRoutes.creatorDashboard)),
+                _menuItem(context, Icons.shopping_bag_outlined, l10n.myOrders, '${orders.orders.length}', 1, onTap: () => context.push(AppRoutes.orders)),
+                _menuItem(context, Icons.favorite_outline_rounded, l10n.wishlist, '${shop.wishlist.length} ${l10n.items}', 2, onTap: () => context.push(AppRoutes.wishlist)),
+                _menuItem(context, Icons.location_on_outlined, l10n.addresses, '${shop.addresses.length}', 3, onTap: () => context.push(AppRoutes.addresses)),
+                _menuItem(context, Icons.credit_card_rounded, l10n.payments, '${shop.paymentMethods.length}', 4, onTap: () => context.push(AppRoutes.paymentMethods)),
+                _menuItem(context, Icons.grid_view_rounded, l10n.followedCreators, '${social.followedCreators.length}', 5, onTap: () => context.push(AppRoutes.followedCreators)),
                 _menuItem(context, Icons.settings_outlined, l10n.settings, '', 6, onTap: () => _showSettings(context)),
               ],
             ),

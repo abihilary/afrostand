@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/constants.dart';
 import '../../../app/routes.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/providers/profile_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../generated/l10n/app_localizations.dart';
 
@@ -52,7 +53,14 @@ class SettingsModal extends StatelessWidget {
             trailing: Switch.adaptive(
               value: settings.themeMode == ThemeMode.dark,
               activeColor: AppColors.orange,
-              onChanged: (val) => settings.toggleTheme(val),
+              onChanged: (val) {
+                settings.toggleTheme(val);
+                // Mirrored to the account so the choice follows the person to
+                // another phone. Best-effort: a failed write never blocks a
+                // theme toggle.
+                context.read<ProfileProvider>()
+                    .syncPreferences(theme: val ? 'dark' : 'light');
+              },
             ),
           ),
           
@@ -74,13 +82,19 @@ class SettingsModal extends StatelessWidget {
               _LangChip(
                 label: "English",
                 isSelected: settings.locale.languageCode == 'en',
-                onTap: () => settings.setLocale(const Locale('en')),
+                onTap: () {
+                  settings.setLocale(const Locale('en'));
+                  context.read<ProfileProvider>().syncPreferences(locale: 'en');
+                },
               ),
               const SizedBox(width: 12),
               _LangChip(
                 label: "Français",
                 isSelected: settings.locale.languageCode == 'fr',
-                onTap: () => settings.setLocale(const Locale('fr')),
+                onTap: () {
+                  settings.setLocale(const Locale('fr'));
+                  context.read<ProfileProvider>().syncPreferences(locale: 'fr');
+                },
               ),
             ],
           ),

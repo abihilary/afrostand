@@ -8,7 +8,9 @@ import '../../core/providers/auth_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/widgets/animated_pressable.dart';
 import '../../shared/widgets/shimmer_placeholder.dart';
-import '../../shared/models/product.dart';
+import '../../shared/models/models.dart';
+import '../../core/providers/catalog_provider.dart';
+import '../../core/providers/profile_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,65 +53,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final auth = context.watch<AuthProvider>();
     final user = auth.currentUser;
-    final fullName = user?.userMetadata?['full_name'] ?? user?.email?.split('@').first ?? 'Aminata';
+    // Was 'Aminata' for anybody without a name set. Greeting a stranger by
+    // somebody else's name is a small thing that makes an app feel fake.
+    final profileP = context.watch<ProfileProvider>();
+    final catalog = context.watch<CatalogProvider>();
+    final fullName = profileP.me?.fullName ??
+        user?.userMetadata?['full_name'] ??
+        user?.email?.split('@').first ??
+        l10n.appName;
 
-    // Data for each collection
-    final collections = {
-      l10n.local: CollectionData(
-        bannerTitle: l10n.newCollection,
-        bannerSubtitle: l10n.collectionDesc,
-        bannerImage: AppAssets.model4,
-        products: [
-          Product(name: 'Boubou Wax Royal', creator: 'MIDE Stores', price: '8 000', image: AppAssets.model1, isNew: true),
-          Product(name: 'Ensemble Ankara', creator: 'Aïsha K.', price: '12 500', image: AppAssets.model3, discount: '-30%'),
-          Product(name: 'Tunique Kente', creator: 'Ghanart', price: '10 500', image: AppAssets.model4),
-          Product(name: 'Robe Indigo', creator: 'Indigo Studio', price: '14 200', image: AppAssets.model7, isNew: true),
-          Product(name: 'Veste Bogolan', creator: 'MIDE Stores', price: '18 000', image: AppAssets.hero),
-          Product(name: 'Jupe Plissée Wax', creator: 'Aïsha K.', price: '7 500', image: AppAssets.model2),
-        ],
-      ),
-      l10n.sustainable: CollectionData(
-        bannerTitle: 'Eco-Fashion 2025',
-        bannerSubtitle: 'Mode éthique et durable par nos artisans.',
-        bannerImage: AppAssets.model8,
-        products: [
-          Product(name: 'Sac Raphia Tressé', creator: 'Atelier Dakar', price: '9 800', image: AppAssets.model5),
-          Product(name: 'Sandales Cuir Bio', creator: 'Maro Dakar', price: '7 400', image: AppAssets.model6, isNew: true),
-          Product(name: 'Panier Osier', creator: 'Nature Art', price: '5 200', image: AppAssets.model8),
-          Product(name: 'Ceinture Jute', creator: 'Eco Wear', price: '3 500', image: AppAssets.model1),
-          Product(name: 'Tote Bag Coton', creator: 'Atelier Dakar', price: '4 000', image: AppAssets.model3),
-          Product(name: 'Pochette Sisal', creator: 'Nature Art', price: '6 800', image: AppAssets.model5, isNew: true),
-        ],
-      ),
-      l10n.gift: CollectionData(
-        bannerTitle: 'Cadeaux Uniques',
-        bannerSubtitle: 'Offrez le meilleur de l’artisanat africain.',
-        bannerImage: AppAssets.model7,
-        products: [
-          Product(name: 'Boucles Cauri Gold', creator: 'Bijoux Baobab', price: '3 200', image: AppAssets.model2, isNew: true),
-          Product(name: 'Chemise Bogolan', creator: 'MIDE Stores', price: '6 500', image: AppAssets.model4),
-          Product(name: 'Masque Sculpté', creator: 'Heritage', price: '25 000', image: AppAssets.hero, discount: '-15%'),
-          Product(name: 'Écharpe Soie Sauvage', creator: 'Artisanat Mali', price: '12 000', image: AppAssets.model3),
-          Product(name: 'Bougie Parfumée', creator: 'Dakar Scent', price: '4 500', image: AppAssets.model6),
-          Product(name: 'Coffret Épices', creator: 'Terroir', price: '8 900', image: AppAssets.model5, isNew: true),
-        ],
-      ),
-      l10n.handmade: CollectionData(
-        bannerTitle: 'Savoir-faire Manuel',
-        bannerSubtitle: 'Chaque pièce est une œuvre d’art unique.',
-        bannerImage: AppAssets.model5,
-        products: [
-          Product(name: 'Tissage Traditionnel', creator: 'Kente Craft', price: '15 000', image: AppAssets.hero, isNew: true),
-          Product(name: 'Potterie Artisanale', creator: 'Dakar Art', price: '4 500', image: AppAssets.model2),
-          Product(name: 'Tableau Batik', creator: 'Galerie Nomade', price: '32 000', image: AppAssets.model7),
-          Product(name: 'Poupée Akan', creator: 'Heritage', price: '6 000', image: AppAssets.model4),
-          Product(name: 'Vase Céramique', creator: 'Dakar Art', price: '9 500', image: AppAssets.model8),
-          Product(name: 'Statue Bronze', creator: 'Heritage', price: '45 000', image: AppAssets.model1, isNew: true),
-        ],
-      ),
-    };
+    // The four filters are category slugs. Banner copy comes from the
+    // categories table, the items from the catalogue - these six-product
+    // lists used to be literals that duplicated the seed and drifted from it
+    // the moment anybody listed something new.
+    const slugs = ['local', 'sustainable', 'gift', 'handmade'];
+    final slug = slugs[filters.indexOf(_selectedFilter).clamp(0, slugs.length - 1)];
+    final category =
+        catalog.categories.where((c) => c.slug == slug).firstOrNull;
+    final items = catalog.taggedLocally(category?.name ?? slug);
 
-    final activeCollection = collections[_selectedFilter] ?? collections[l10n.local]!;
+    final activeCollection = CollectionData(
+      bannerTitle: category?.name ?? _selectedFilter,
+      bannerSubtitle: category?.description ?? l10n.collectionDesc,
+      bannerImage: category?.imageUrl ?? '',
+      products: items,
+    );
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -269,7 +237,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: AppColors.dark,
                           borderRadius: BorderRadius.circular(24),
                           image: DecorationImage(
-                            image: NetworkImage(activeCollection.bannerImage),
+                            image: NetworkImage(activeCollection.bannerImage.isEmpty
+                                ? (items.isNotEmpty ? items.first.imageUrl : '')
+                                : activeCollection.bannerImage),
                             fit: BoxFit.cover,
                             colorFilter: ColorFilter.mode(
                               Colors.black.withOpacity(0.35),
@@ -327,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               onPressed: () {
-                                context.go('${AppRoutes.home}/${AppRoutes.categoryFeed}?title=${Uri.encodeComponent(activeCollection.bannerTitle)}&image=${Uri.encodeComponent(activeCollection.bannerImage)}');
+                                context.push(AppRoutes.categoryFeed(slug));
                               },
                               child: Text(
                                 l10n.discover,
@@ -542,7 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return AnimatedPressable(
       onTap: () {
-        context.push('${AppRoutes.home}/${AppRoutes.productDetail}', extra: product);
+        context.push(AppRoutes.productDetail(product.id));
       },
       child: Container(
         decoration: BoxDecoration(
@@ -560,7 +530,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
                       image: DecorationImage(
-                        image: NetworkImage(product.image),
+                        image: NetworkImage(product.imageUrl),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -582,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  if (product.isNew || product.discount != null)
+                  if (product.isNew || product.isDiscounted)
                     Positioned(
                       top: 8,
                       left: 8,
@@ -593,7 +563,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          product.isNew ? 'NEW' : product.discount!,
+                          product.isNew ? 'NEW' : product.discountLabel!,
                           style: TextStyle(
                             color: product.isNew ? Colors.white : AppColors.dark,
                             fontSize: 9,
@@ -621,7 +591,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    product.creator,
+                    product.creatorName,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
@@ -630,7 +600,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${product.price} FCFA',
+                    '${product.effectivePriceLabel} FCFA',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w900,

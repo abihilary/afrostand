@@ -342,6 +342,9 @@ OrderStatus _orderStatus(Object? v) => switch (v?.toString()) {
 class OrderItem {
   final String id;
   final String? productId;
+  /// Which shop sold this line. An order can span several shops, so a
+  /// seller's revenue is the sum of their own lines, never the order total.
+  final String? creatorId;
   final String name;
   final String? imageUrl;
   final int unitPriceXaf;
@@ -355,6 +358,7 @@ class OrderItem {
     required this.unitPriceXaf,
     required this.qty,
     this.productId,
+    this.creatorId,
     this.imageUrl,
     this.size = '',
     this.color = '',
@@ -365,6 +369,7 @@ class OrderItem {
   factory OrderItem.fromJson(Map<String, dynamic> j) => OrderItem(
         id: j['id'].toString(),
         productId: _asString(j['product_id']),
+        creatorId: _asString(j['creator_id']),
         name: _asString(j['name']) ?? '',
         imageUrl: _asString(j['image_url']),
         unitPriceXaf: _asInt(j['unit_price_xaf']),
@@ -548,4 +553,20 @@ class Message {
         createdAt: _asDate(j['created_at']),
         readAt: _asDate(j['read_at']),
       );
+}
+
+/// A banner plus the items under it. Used by the home screen to keep the two
+/// together while the selected collection changes.
+class CollectionData {
+  final String bannerTitle;
+  final String bannerSubtitle;
+  final String bannerImage;
+  final List<Product> products;
+
+  const CollectionData({
+    required this.bannerTitle,
+    required this.bannerSubtitle,
+    required this.bannerImage,
+    required this.products,
+  });
 }

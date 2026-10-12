@@ -1,13 +1,31 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:provider/provider.dart';
 import '../../app/constants.dart';
-import '../../core/providers/data_provider.dart';
-import '../../core/providers/auth_provider.dart';
+import '../../core/api/storage.dart';
+import '../../core/providers/catalog_provider.dart';
+import '../../core/providers/profile_provider.dart';
+import '../../generated/l10n/app_localizations.dart';
+import '../../shared/models/models.dart';
 import '../../shared/widgets/image_editor_screen.dart';
 
+/// List something for sale.
+///
+/// Three things were wrong here and all three mattered:
+///
+///   * The image was saved as `pickedFile.path` — a path inside this app's
+///     cache. The product looked right on the phone that listed it and was a
+///     broken image for every single customer. It now uploads to Storage and
+///     stores the returned public URL.
+///   * The shop was `user_metadata['full_name']`, defaulting to the string
+///     'MIDE Stores' — so an unnamed seller's goods were attributed to
+///     somebody else's shop. It is now the creator row the account owns, and
+///     if there is not one, this screen says so rather than guessing.
+///   * It reported "persisted! 🥳" whether or not the insert succeeded, because
+///     the error was caught and logged. A failed listing now fails visibly.
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
 
@@ -16,222 +34,251 @@ class AddProductScreen extends StatefulWidget {
 }
 
 class _AddProductScreenState extends State<AddProductScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _imageUrlController = TextEditingController();
-  final TextEditingController _discountController = TextEditingController();
-  bool _isNew = true;
-  bool _isLoading = false;
-  File? _pickedImageFile;
+  final _name = TextEditingController();
+  final _price = TextEditingController();
+  final _description = TextEditingController();
+  final _discount = TextEditingController();
+
+  File? _picked;
+  bool _busy = false;
+  String? _status;
+  String? _error;
+  String? _categoryId;
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _priceController.dispose();
-    _imageUrlController.dispose();
-    _discountController.dispose();
+    _name.dispose();
+    _price.dispose();
+    _description.dispose();
+    _discount.dispose();
     super.dispose();
   }
 
   Future<void> _pickImage() async {
     try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null && mounted) {
-        final editedFile = await Navigator.push<File>(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ImageEditorScreen(imageFile: File(pickedFile.path)),
-          ),
-        );
-        if (editedFile != null) {
-          setState(() {
-            _pickedImageFile = editedFile;
-            _imageUrlController.text = editedFile.path;
-          });
-        }
-      }
+      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (file == null || !mounted) return;
+      final edited = await Navigator.push<File?>(
+        context,
+        MaterialPageRoute(builder: (_) => ImageEditorScreen(imageFile: File(file.path))),
+      );
+      if (!mounted) return;
+      setState(() => _picked = edited ?? File(file.path));
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to pick image: $e')),
-        );
-      }
+      if (!mounted) return;
+      setState(() => _error = '$e');
     }
   }
 
-  Future<void> _submitProduct() async {
-    final name = _nameController.text.trim();
-    final price = _priceController.text.trim();
-    final imageUrl = _imageUrlController.text.trim();
-    final discount = _discountController.text.trim();
+  Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
+    final profile = context.read<ProfileProvider>();
+    final router = GoRouter.of(context);
+    final messenger = ScaffoldMessenger.of(context);
 
-    if (name.isEmpty || price.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter product name and price')),
-      );
+    final name = _name.text.trim();
+    final priceText = _price.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+    final price = int.tryParse(priceText);
+
+    if (name.isEmpty || price == null || price <= 0) {
+      setState(() => _error = 'Enter a name and a price in FCFA.');
+      return;
+    }
+    if (_picked == null) {
+      setState(() => _error = 'Add a photo of the item.');
+      return;
+    }
+    if (profile.myCreator == null) {
+      setState(() => _error = 'Your shop is not set up yet.');
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+      _status = l10n.uploadingImage;
+    });
 
-    final auth = context.read<AuthProvider>();
-    final creatorName = auth.currentUser?.userMetadata?['full_name'] ?? 'MIDE Stores';
+    try {
+      // Upload first. A product row pointing at an image that failed to upload
+      // is worse than no product row: it is a listing with a broken picture
+      // that the seller has no obvious way to fix.
+      final imageUrl = await uploadImage(_picked!);
+      if (!mounted) return;
+      setState(() => _status = l10n.saveLabel);
 
-    final finalImageUrl = imageUrl.isNotEmpty ? imageUrl : AppAssets.model1;
-
-    final dataProvider = context.read<DataProvider>();
-    await dataProvider.addProduct(
-      name: name,
-      price: price,
-      creator: creatorName,
-      imageUrl: finalImageUrl,
-      discount: discount.isNotEmpty ? discount : null,
-      isNew: _isNew,
-    );
-
-    setState(() => _isLoading = false);
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Product added successfully & persisted! 🥳')),
-    );
-    context.pop();
+      final discountText = _discount.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+      await profile.addProduct(
+        name: name,
+        priceXaf: price,
+        imageUrl: imageUrl,
+        description: _description.text.trim().isEmpty ? null : _description.text.trim(),
+        discountPct: discountText.isEmpty ? null : int.tryParse(discountText),
+        categoryId: _categoryId,
+      );
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(content: Text('Article mis en ligne.')));
+      router.pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+        _busy = false;
+        _status = null;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final profile = context.watch<ProfileProvider>();
+    final categories = context.watch<CatalogProvider>().categories;
+
+    if (!profile.canSell) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(leading: BackButton(onPressed: () => context.pop())),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.storefront_outlined, size: 48, color: theme.hintColor),
+                const SizedBox(height: 16),
+                Text(
+                  switch (profile.creatorStatus) {
+                    CreatorStatus.requested => l10n.creatorRequested,
+                    CreatorStatus.rejected => l10n.creatorRejected,
+                    _ => l10n.becomeCreator,
+                  },
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: isDark ? Colors.white : AppColors.dark),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text('Add New Product', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        leading: BackButton(onPressed: _busy ? null : () => context.pop()),
+        title: const Text('Nouvel article',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Publish your creation to the Afrostand marketplace',
-              style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.black54),
-            ),
-            const SizedBox(height: 24),
-
-            // Image Picker / Preview with proper FileImage vs NetworkImage handling
-            Center(
-              child: InkWell(
-                onTap: _pickImage,
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          GestureDetector(
+            onTap: _busy ? null : _pickImage,
+            child: Container(
+              height: 220,
+              decoration: BoxDecoration(
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  height: 140,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: theme.dividerColor),
-                    image: _pickedImageFile != null
-                        ? DecorationImage(image: FileImage(_pickedImageFile!), fit: BoxFit.cover)
-                        : (_imageUrlController.text.isNotEmpty)
-                            ? (_imageUrlController.text.startsWith('http')
-                                ? DecorationImage(image: NetworkImage(_imageUrlController.text), fit: BoxFit.cover)
-                                : DecorationImage(image: FileImage(File(_imageUrlController.text)), fit: BoxFit.cover))
-                            : null,
-                  ),
-                  child: _pickedImageFile == null && _imageUrlController.text.isEmpty
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.add_photo_alternate_rounded, size: 36, color: AppColors.orange),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Tap to pick, resize & crop image',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : AppColors.dark),
-                            ),
-                          ],
-                        )
-                      : null,
-                ),
+                border: Border.all(color: theme.dividerColor),
+                image: _picked == null
+                    ? null
+                    : DecorationImage(image: FileImage(_picked!), fit: BoxFit.cover),
               ),
+              child: _picked != null
+                  ? null
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_a_photo_outlined, size: 32, color: theme.hintColor),
+                        const SizedBox(height: 10),
+                        Text('Ajouter une photo',
+                            style: TextStyle(color: theme.hintColor, fontSize: 13)),
+                      ],
+                    ),
             ),
-
-            const SizedBox(height: 20),
-
-            const Text('OR ENTER IMAGE URL LINK', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _imageUrlController,
-              onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(hintText: 'https://images.unsplash.com/...'),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text('PRODUCT NAME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(hintText: 'e.g., Boubou Wax Royal'),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text('PRICE (FCFA)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _priceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(hintText: 'e.g., 8500'),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text('DISCOUNT (Optional)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _discountController,
-              decoration: const InputDecoration(hintText: 'e.g., -30%'),
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              children: [
-                Checkbox(
-                  value: _isNew,
-                  onChanged: (val) => setState(() => _isNew = val ?? true),
-                  activeColor: AppColors.orange,
-                ),
-                const Text('Mark as NEW collection item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          ),
+          const SizedBox(height: 18),
+          TextField(
+            controller: _name,
+            enabled: !_busy,
+            decoration: InputDecoration(
+                labelText: l10n.productName, border: const OutlineInputBorder()),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _price,
+            enabled: !_busy,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+                labelText: l10n.priceLabel, border: const OutlineInputBorder()),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _description,
+            enabled: !_busy,
+            minLines: 3,
+            maxLines: 5,
+            decoration: InputDecoration(
+                labelText: l10n.description, border: const OutlineInputBorder()),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _discount,
+            enabled: !_busy,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+                labelText: 'Remise %', border: OutlineInputBorder()),
+          ),
+          if (categories.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String?>(
+              initialValue: _categoryId,
+              decoration: InputDecoration(
+                  labelText: l10n.categories, border: const OutlineInputBorder()),
+              items: [
+                const DropdownMenuItem(value: null, child: Text('—')),
+                ...categories.map((c) =>
+                    DropdownMenuItem(value: c.id, child: Text(c.name))),
               ],
-            ),
-
-            const SizedBox(height: 36),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _submitProduct,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text('Publish Product'),
-              ),
+              onChanged: _busy ? null : (v) => setState(() => _categoryId = v),
             ),
           ],
-        ),
+          if (_error != null) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(_error!, style: const TextStyle(fontSize: 12)),
+            ),
+          ],
+          const SizedBox(height: 22),
+          ElevatedButton(
+            onPressed: _busy ? null : _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.orange,
+              foregroundColor: AppColors.dark,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: _busy
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                          height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                      const SizedBox(width: 10),
+                      Text(_status ?? ''),
+                    ],
+                  )
+                : Text(l10n.saveLabel, style: const TextStyle(fontWeight: FontWeight.w800)),
+          ),
+        ],
       ),
     );
   }

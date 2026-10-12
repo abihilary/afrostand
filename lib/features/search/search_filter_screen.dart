@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../app/constants.dart';
 import '../../app/routes.dart';
 import '../../generated/l10n/app_localizations.dart';
-import '../../shared/models/product.dart';
+import '../../shared/models/models.dart';
+import 'package:provider/provider.dart';
+import '../../core/providers/catalog_provider.dart';
 import '../../shared/widgets/animated_pressable.dart';
 
 class SearchFilterScreen extends StatefulWidget {
@@ -24,38 +27,73 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   ];
 
   List<Product> _results = [];
+  List<Product> _all = [];
+  bool _loading = true;
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
-    _results = allMockProducts;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll());
   }
 
+  Future<void> _loadAll() async {
+    try {
+      final items = await context.read<CatalogProvider>().search('');
+      if (!mounted) return;
+      setState(() {
+        _all = items;
+        _loading = false;
+      });
+      _filterProducts();
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Debounced: the search runs server-side, and a query per keystroke on a
+  /// mobile connection is a request the user has already invalidated by the
+  /// time it lands.
   void _onSearchChanged(String query) {
-    _filterProducts();
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), _runSearch);
   }
 
-  void _filterProducts() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _results = allMockProducts.where((product) {
-        final matchesQuery = product.name.toLowerCase().contains(query) || 
-                            product.creator.toLowerCase().contains(query) ||
-                            product.tags.any((tag) => tag.toLowerCase().contains(query));
-        
-        final matchesFilters = _activeFilters.isEmpty || 
-                              _activeFilters.any((f) => 
-                                product.tags.any((t) => t.toLowerCase() == f.toLowerCase()) ||
-                                product.name.toLowerCase().contains(f.toLowerCase())
-                              );
-
-        return matchesQuery && matchesFilters;
-      }).toList();
-    });
+  Future<void> _runSearch() async {
+    final q = _searchController.text.trim();
+    if (q.isEmpty) {
+      setState(() => _results = _applyFilters(_all));
+      return;
+    }
+    try {
+      final found = await context.read<CatalogProvider>().search(q);
+      if (!mounted) return;
+      setState(() => _results = _applyFilters(found));
+    } catch (_) {
+      // Fall back to filtering what is already loaded rather than blanking
+      // the screen on a flaky connection.
+      if (mounted) {
+        setState(() => _results = _applyFilters(_all.where((p) =>
+            p.name.toLowerCase().contains(q.toLowerCase()) ||
+            p.creatorName.toLowerCase().contains(q.toLowerCase())).toList()));
+      }
+    }
   }
+
+  List<Product> _applyFilters(List<Product> source) {
+    if (_activeFilters.isEmpty) return source;
+    return source
+        .where((p) => _activeFilters.any((f) =>
+            p.tags.any((t) => t.toLowerCase() == f.toLowerCase()) ||
+            p.name.toLowerCase().contains(f.toLowerCase())))
+        .toList();
+  }
+
+  void _filterProducts() => setState(() => _results = _applyFilters(_all));
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -201,8 +239,10 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
           Expanded(
             child: AnimatedSwitcher(
               duration: 300.ms,
-              child: _results.isEmpty 
-              ? Center(child: Text("No results found", style: TextStyle(color: theme.hintColor)))
+              child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _results.isEmpty
+              ? Center(child: Text(AppLocalizations.of(context)!.noResults, style: TextStyle(color: theme.hintColor)))
               : GridView.builder(
                   key: ValueKey(_results.length),
                   padding: const EdgeInsets.all(20),
@@ -216,12 +256,12 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   itemBuilder: (context, index) {
                     final product = _results[index];
                     return AnimatedPressable(
-                      onTap: () => context.push('${AppRoutes.home}/${AppRoutes.productDetail}'),
+                      onTap: () => context.push(AppRoutes.productDetail(product.id)),
                       child: _searchResultCard(
                         context,
                         product.name,
-                        product.price,
-                        product.image,
+                        product.effectivePriceLabel,
+                        product.imageUrl,
                       ),
                     ).animate().fade(delay: (index * 50).ms).slideY(begin: 0.1);
                   },
