@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final slug = slugs[filters.indexOf(_selectedFilter).clamp(0, slugs.length - 1)];
     final category =
         catalog.categories.where((c) => c.slug == slug).firstOrNull;
-    final items = catalog.taggedLocally(category?.name ?? slug);
+    final items = catalog.inCollection(category, slug);
 
     final activeCollection = CollectionData(
       bannerTitle: category?.name ?? _selectedFilter,

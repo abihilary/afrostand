@@ -11,6 +11,7 @@ import '../../core/providers/profile_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/image_editor_screen.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// List something for sale.
 ///
@@ -66,7 +67,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       setState(() => _picked = edited ?? File(file.path));
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = '$e');
+      setState(() => _error = humanError(e, AppLocalizations.of(context)!));
     }
   }
 
@@ -122,7 +123,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = '$e';
+        _error = humanError(e, l10n);
         _busy = false;
         _status = null;
       });

@@ -66,11 +66,22 @@ class CatalogProvider extends ChangeNotifier with Loadable {
   Future<Creator?> creator(String id) => _repo.creator(id);
   Future<List<Product>> productsByCreator(String id) => _repo.productsByCreator(id);
 
-  /// Products carrying a tag, from what is already loaded. The home screen
+  /// Products in a collection, from what is already loaded. The home screen
   /// filters between four collections on every tap, and a round trip for a
   /// filter the client can already answer would make it feel slow for nothing.
-  List<Product> taggedLocally(String tag) {
-    final t = tag.toLowerCase();
+  ///
+  /// Category first, tag second. Matching on the tag alone left the home
+  /// screen empty on its own default: the collection is called "Local" and no
+  /// product carries a tag of that name — the tags are things like "Wax" and
+  /// "Cadeau". The category is the actual relation; the tag is a fallback for
+  /// products that never got one.
+  List<Product> inCollection(ProductCategory? category, String label) {
+    if (category != null) {
+      final byCategory =
+          _products.where((p) => p.categoryId == category.id).toList();
+      if (byCategory.isNotEmpty) return byCategory;
+    }
+    final t = (category?.name ?? label).toLowerCase();
     return _products.where((p) => p.tags.any((x) => x.toLowerCase() == t)).toList();
   }
 }

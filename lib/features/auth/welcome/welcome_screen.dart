@@ -113,6 +113,26 @@ class WelcomeScreen extends StatelessWidget {
 
               const Spacer(),
 
+              // The catalogue is public — products, creators and categories
+              // all have a `using (true)` select policy — but this screen used
+              // to be the only way past the splash, so a signed-out visitor
+              // had nowhere to go but a sign-up form. That is the opposite of
+              // what the policies were written for.
+              Center(
+                child: TextButton(
+                  onPressed: () => context.go(AppRoutes.home),
+                  child: Text(
+                    AppLocalizations.of(context)!.browseAsGuest,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white60 : Colors.black54,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+
               Center(
                 child: Text(
                   AppLocalizations.of(context)!.termsAgreement,

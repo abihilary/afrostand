@@ -6,6 +6,7 @@ import '../../app/routes.dart';
 import '../../core/providers/orders_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// Past and current orders.
 class OrdersScreen extends StatefulWidget {
@@ -154,12 +155,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () async {
-                  final messenger = ScaffoldMessenger.of(context);
                   try {
                     await orders.cancel(o.id);
                   } catch (e) {
                     if (!mounted) return;
-                    messenger.showSnackBar(SnackBar(content: Text('$e')));
+                    showError(context, e);
                   }
                 },
                 child: Text(l10n.cancelOrder),

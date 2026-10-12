@@ -9,6 +9,7 @@ import '../../core/providers/social_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/animated_pressable.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// A shop.
 ///
@@ -76,7 +77,7 @@ class _CreatorProfileScreenState extends State<CreatorProfileScreen> {
       router.push(AppRoutes.chat(threadId));
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      showError(context, e);
     }
   }
 
@@ -189,12 +190,11 @@ class _CreatorProfileScreenState extends State<CreatorProfileScreen> {
                       Expanded(
                         child: AnimatedPressable(
                           onTap: () async {
-                            final messenger = ScaffoldMessenger.of(context);
                             try {
                               await social.toggleFollow(creator.id);
                             } catch (e) {
-                              if (!mounted) return;
-                              messenger.showSnackBar(SnackBar(content: Text('$e')));
+                              if (!context.mounted) return;
+                              showError(context, e);
                             }
                           },
                           child: Container(

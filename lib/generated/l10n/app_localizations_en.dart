@@ -82,6 +82,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get or => 'OR';
 
   @override
+  String get browseAsGuest => 'Browse without an account';
+
+  @override
   String get termsAgreement =>
       'By continuing, you accept our T&Cs & Privacy Policy';
 
@@ -380,6 +383,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newLabel => 'New';
+
+  @override
+  String get errorNotAllowed => 'You are not allowed to do that.';
+
+  @override
+  String get errorOffline => 'No connection. Check your network and try again.';
 
   @override
   String get somethingWrong => 'Something went wrong';

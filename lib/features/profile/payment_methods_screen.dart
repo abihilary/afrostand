@@ -6,6 +6,7 @@ import '../../app/routes.dart';
 import '../../core/providers/shop_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// Saved ways to pay.
 ///
@@ -152,7 +153,6 @@ class _MethodSheetState extends State<_MethodSheet> {
     if (_label.text.trim().isEmpty) return;
     setState(() => _saving = true);
     final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await widget.shop.savePaymentMethod(
         kind: _kind,
@@ -165,7 +165,7 @@ class _MethodSheetState extends State<_MethodSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      showError(context, e);
     }
   }
 

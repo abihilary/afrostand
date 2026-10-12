@@ -236,6 +236,12 @@ abstract class AppLocalizations {
   /// **'OR'**
   String get or;
 
+  /// No description provided for @browseAsGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse without an account'**
+  String get browseAsGuest;
+
   /// No description provided for @termsAgreement.
   ///
   /// In en, this message translates to:
@@ -829,6 +835,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New'**
   String get newLabel;
+
+  /// No description provided for @errorNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not allowed to do that.'**
+  String get errorNotAllowed;
+
+  /// No description provided for @errorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Check your network and try again.'**
+  String get errorOffline;
 
   /// No description provided for @somethingWrong.
   ///

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/providers/shop_provider.dart';
 import '../../app/constants.dart';
 import '../../generated/l10n/app_localizations.dart';
 
@@ -16,7 +18,9 @@ class AppBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    // Was the literal 2, so the tab bar advertised two items in an empty cart
+    // on a first run, before anybody had tapped anything.
+    final cartCount = context.watch<ShopProvider>().cartCount;
 
     return Container(
       height: 84,
@@ -55,7 +59,7 @@ class AppBottomNavBar extends StatelessWidget {
             label: l10n.navCart,
             isActive: currentIndex == 3,
             onTap: () => onTap(3),
-            badgeCount: 2,
+            badgeCount: cartCount,
           ),
           _NavBarItem(
             icon: Icons.person_rounded,

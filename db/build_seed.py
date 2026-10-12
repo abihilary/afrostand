@@ -68,6 +68,24 @@ def main() -> None:
     # and "gift" are the same shelf, and without this a third of the catalogue
     # sits in no category at all.
     ALIAS = {"cadeau": "gift", "habits": "local", "accessoire": "local"}
+
+    # Fourteen of the twenty-four products have no tags at all in the source
+    # JSON, so the tag pass left them in no category — invisible to every
+    # collection on the home screen and to every category tile, reachable only
+    # by search. A word in the name is a weaker signal than a tag, which is why
+    # it runs second, but a shelf is better than a limbo.
+    NAME_HINTS = [
+        ("bogolan", "local"), ("wax", "wax"), ("ankara", "wax"), ("kente", "local"),
+        ("osier", "raphia"), ("sisal", "raphia"), ("panier", "raphia"),
+        ("pochette", "raphia"), ("raphia", "raphia"),
+        ("jute", "sustainable"), ("coton", "sustainable"), ("bio", "sustainable"),
+        ("masque", "handmade"), ("tissage", "handmade"), ("potterie", "handmade"),
+        ("poterie", "handmade"), ("vase", "handmade"), ("statue", "handmade"),
+        ("ceramique", "handmade"), ("tableau", "handmade"),
+        ("bougie", "gift"), ("coffret", "gift"),
+        ("echarpe", "local"), ("soie", "local"),
+        ("cuir", "cuir"), ("bijou", "bijoux"), ("boucles", "bijoux"),
+    ]
     creator_by_name = {c["name"]: uid("creator", slugify(c["name"])) for c in creators}
 
     out = [
@@ -119,6 +137,12 @@ def main() -> None:
             if slug in cat_slugs:
                 cat = cat_by_slug[slug]
                 break
+        if cat is None:
+            name_key = slugify(p["name"])
+            for word, slug in NAME_HINTS:
+                if word in name_key and slug in cat_slugs:
+                    cat = cat_by_slug[slug]
+                    break
         if cat is None:
             unmatched += 1
         disc = p.get("discount")

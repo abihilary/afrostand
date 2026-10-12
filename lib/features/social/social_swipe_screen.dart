@@ -7,6 +7,7 @@ import '../../core/providers/social_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/animated_pressable.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// The feed — full-screen posts, one per swipe.
 ///
@@ -89,12 +90,11 @@ class _SocialSwipeScreenState extends State<SocialSwipeScreen> {
             return _PostCard(
               post: post,
               onLike: () async {
-                final messenger = ScaffoldMessenger.of(context);
                 try {
                   await social.toggleLike(post.id);
                 } catch (e) {
-                  if (!mounted) return;
-                  messenger.showSnackBar(SnackBar(content: Text('$e')));
+                  if (!context.mounted) return;
+                  showError(context, e);
                 }
               },
               onComment: () => _showComments(context, post),
@@ -274,7 +274,6 @@ class _CommentSheetState extends State<_CommentSheet> {
   Future<void> _send() async {
     final body = _controller.text.trim();
     if (body.isEmpty || _sending) return;
-    final messenger = ScaffoldMessenger.of(context);
     setState(() => _sending = true);
     _controller.clear();
     try {
@@ -284,7 +283,7 @@ class _CommentSheetState extends State<_CommentSheet> {
     } catch (e) {
       if (!mounted) return;
       _controller.text = body;
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      showError(context, e);
     } finally {
       if (mounted) setState(() => _sending = false);
     }

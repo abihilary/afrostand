@@ -7,6 +7,7 @@ import '../../core/providers/shop_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/animated_pressable.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// Saved items.
 class WishlistScreen extends StatefulWidget {
@@ -102,13 +103,12 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   right: 6,
                   child: GestureDetector(
                     onTap: () async {
-                      final messenger = ScaffoldMessenger.of(context);
                       try {
                         await shop.toggleWishlist(p.id);
                         await shop.loadWishlist();
                       } catch (e) {
                         if (!mounted) return;
-                        messenger.showSnackBar(SnackBar(content: Text('$e')));
+                        showError(context, e);
                       }
                     },
                     child: CircleAvatar(
@@ -148,7 +148,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         behavior: SnackBarBehavior.floating));
                   } catch (e) {
                     if (!mounted) return;
-                    messenger.showSnackBar(SnackBar(content: Text('$e')));
+                    showError(context, e);
                   }
                 },
                 child: const Icon(Icons.add_shopping_cart_rounded, size: 18),

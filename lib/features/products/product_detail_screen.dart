@@ -10,6 +10,7 @@ import '../../core/providers/social_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/animated_pressable.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// One product.
 ///
@@ -101,11 +102,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       if (!mounted) return;
       // Most often "sign in to use the cart". Said plainly rather than
       // swallowed, because a button that does nothing is the complaint this
-      // whole pass started from.
-      messenger.showSnackBar(SnackBar(
-        content: Text('$e'),
-        behavior: SnackBarBehavior.floating,
-      ));
+      // whole pass started from — and in words, not as a stringified
+      // AuthException, with a way to act on it.
+      showError(context, e);
     } finally {
       if (mounted) setState(() => _adding = false);
     }
@@ -209,12 +208,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                       : Icons.favorite_outline_rounded,
                                   color: isFavorited ? AppColors.orange : null,
                                   onTap: () async {
-                                    final messenger = ScaffoldMessenger.of(context);
                                     try {
                                       await shop.toggleWishlist(product.id);
                                     } catch (e) {
-                                      if (!mounted) return;
-                                      messenger.showSnackBar(SnackBar(content: Text('$e')));
+                                      if (!context.mounted) return;
+                                      showError(context, e);
                                     }
                                   },
                                 ),
@@ -533,12 +531,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox(width: 8),
           AnimatedPressable(
             onTap: () async {
-              final messenger = ScaffoldMessenger.of(context);
               try {
                 await social.toggleFollow(product.creatorId);
               } catch (e) {
                 if (!mounted) return;
-                messenger.showSnackBar(SnackBar(content: Text('$e')));
+                showError(context, e);
               }
             },
             child: Container(

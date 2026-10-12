@@ -7,6 +7,7 @@ import '../../core/providers/orders_provider.dart';
 import '../../core/providers/profile_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// The seller's side.
 ///
@@ -106,12 +107,11 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
             if (status == CreatorStatus.none || status == CreatorStatus.rejected)
               ElevatedButton(
                 onPressed: () async {
-                  final messenger = ScaffoldMessenger.of(context);
                   try {
                     await profile.requestCreatorStatus();
                   } catch (e) {
                     if (!mounted) return;
-                    messenger.showSnackBar(SnackBar(content: Text('$e')));
+                    showError(context, e);
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -248,7 +248,6 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
           ),
           PopupMenuButton<String>(
             onSelected: (v) async {
-              final messenger = ScaffoldMessenger.of(context);
               final router = GoRouter.of(context);
               if (v == 'view') {
                 router.push(AppRoutes.productDetail(p.id));
@@ -259,7 +258,7 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
                   await profile.delistProduct(p.id);
                 } catch (e) {
                   if (!mounted) return;
-                  messenger.showSnackBar(SnackBar(content: Text('$e')));
+                  showError(context, e);
                 }
               }
             },

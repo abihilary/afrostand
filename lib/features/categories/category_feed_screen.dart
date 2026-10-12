@@ -71,12 +71,23 @@ class _CategoryFeedScreenState extends State<CategoryFeedScreen> {
           SliverAppBar(
             expandedHeight: 180,
             pinned: true,
+            // The title sits on top of a photograph, so it cannot inherit the
+            // theme's dark-on-light text: over the banner it was black on a
+            // dark image and effectively unreadable. Dark bar, white text,
+            // which also holds once the bar collapses.
+            backgroundColor: AppColors.dark,
+            foregroundColor: Colors.white,
             leading: BackButton(
+              color: Colors.white,
               onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.home),
             ),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(title,
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: Colors.white,
+                      shadows: [Shadow(blurRadius: 8, color: Colors.black54)])),
               background: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -89,7 +100,7 @@ class _CategoryFeedScreenState extends State<CategoryFeedScreen> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Colors.black54],
+                        colors: [Colors.black26, Colors.black87],
                       ),
                     ),
                   ),

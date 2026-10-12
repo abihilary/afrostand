@@ -7,6 +7,7 @@ import '../../app/constants.dart';
 import '../../core/api/repositories.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart' as m;
+import '../../shared/widgets/app_snack.dart';
 
 /// One conversation, live.
 ///
@@ -89,7 +90,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _send() async {
     final body = _controller.text.trim();
     if (body.isEmpty || _sending) return;
-    final messenger = ScaffoldMessenger.of(context);
     setState(() => _sending = true);
     _controller.clear();
     try {
@@ -104,7 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
       // Put the text back. Losing somebody's message because the network
       // blinked is the one thing a chat must not do.
       _controller.text = body;
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      showError(context, e);
     } finally {
       if (mounted) setState(() => _sending = false);
     }

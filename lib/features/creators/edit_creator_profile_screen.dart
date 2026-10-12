@@ -9,6 +9,7 @@ import '../../core/api/storage.dart';
 import '../../core/providers/profile_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/widgets/image_editor_screen.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// Shop settings.
 ///
@@ -99,7 +100,7 @@ class _EditCreatorProfileScreenState extends State<EditCreatorProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = '$e';
+        _error = humanError(e, AppLocalizations.of(context)!);
         _busy = false;
       });
     }

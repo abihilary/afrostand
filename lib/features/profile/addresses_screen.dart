@@ -6,6 +6,7 @@ import '../../app/routes.dart';
 import '../../core/providers/shop_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// Delivery addresses.
 ///
@@ -198,7 +199,7 @@ class _AddressSheetState extends State<_AddressSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = '$e';
+        _error = humanError(e, l10n);
         _saving = false;
       });
     }

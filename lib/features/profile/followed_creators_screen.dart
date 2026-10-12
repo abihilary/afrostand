@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../app/routes.dart';
 import '../../core/providers/social_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
+import '../../shared/widgets/app_snack.dart';
 
 /// The shops you follow.
 class FollowedCreatorsScreen extends StatefulWidget {
@@ -87,13 +88,12 @@ class _FollowedCreatorsScreenState extends State<FollowedCreatorsScreen> {
                         ),
                         trailing: TextButton(
                           onPressed: () async {
-                            final messenger = ScaffoldMessenger.of(context);
                             try {
                               await social.toggleFollow(c.id);
                               await social.loadFollowed();
                             } catch (e) {
-                              if (!mounted) return;
-                              messenger.showSnackBar(SnackBar(content: Text('$e')));
+                              if (!context.mounted) return;
+                              showError(context, e);
                             }
                           },
                           child: Text(l10n.unfollow),

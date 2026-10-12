@@ -82,6 +82,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get or => 'OU';
 
   @override
+  String get browseAsGuest => 'Parcourir sans compte';
+
+  @override
   String get termsAgreement =>
       'En continuant, tu acceptes nos CGU & Politique de confidentialité';
 
@@ -380,6 +383,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get newLabel => 'Nouveau';
+
+  @override
+  String get errorNotAllowed =>
+      'Vous n\'avez pas l\'autorisation de faire cela.';
+
+  @override
+  String get errorOffline =>
+      'Pas de connexion. Vérifiez votre réseau et réessayez.';
 
   @override
   String get somethingWrong => 'Une erreur est survenue';
