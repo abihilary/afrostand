@@ -374,4 +374,147 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signOut => 'Sign out';
+
+  @override
+  String get retry => 'Try again';
+
+  @override
+  String get newLabel => 'New';
+
+  @override
+  String get somethingWrong => 'Something went wrong';
+
+  @override
+  String get checkConnection => 'Check your connection and try again.';
+
+  @override
+  String get signInToContinue => 'Sign in to continue';
+
+  @override
+  String get nothingHere => 'Nothing here yet';
+
+  @override
+  String get emptyCart => 'Your basket is empty';
+
+  @override
+  String get emptyCartHint =>
+      'Browse the collections and add something you like.';
+
+  @override
+  String get emptyWishlist => 'No saved items';
+
+  @override
+  String get emptyOrders => 'No orders yet';
+
+  @override
+  String get noAddresses => 'No delivery address saved';
+
+  @override
+  String get noPaymentMethods => 'No payment method saved';
+
+  @override
+  String get noFollowed => 'You are not following anyone yet';
+
+  @override
+  String get noProducts => 'No items yet';
+
+  @override
+  String get noResults => 'No results';
+
+  @override
+  String get delivery => 'Delivery';
+
+  @override
+  String get orderTotal => 'Total';
+
+  @override
+  String get orderPlaced => 'Order placed';
+
+  @override
+  String get paymentPending => 'Payment not completed';
+
+  @override
+  String get paymentPendingHint =>
+      'The order is saved. You can pay for it from your orders.';
+
+  @override
+  String get cancelOrder => 'Cancel the order';
+
+  @override
+  String get addAddress => 'Add an address';
+
+  @override
+  String get editAddress => 'Edit the address';
+
+  @override
+  String get setDefault => 'Use by default';
+
+  @override
+  String get fullNameLabel => 'Full name';
+
+  @override
+  String get phoneLabel => 'Phone';
+
+  @override
+  String get addressLine => 'Address';
+
+  @override
+  String get cityLabel => 'City';
+
+  @override
+  String get saveLabel => 'Save';
+
+  @override
+  String get deleteLabel => 'Delete';
+
+  @override
+  String get addPaymentMethod => 'Add a payment method';
+
+  @override
+  String get cashOnDelivery => 'Cash on delivery';
+
+  @override
+  String get becomeCreator => 'Sell on AfroStand';
+
+  @override
+  String get creatorRequested => 'Your request is being reviewed';
+
+  @override
+  String get creatorRejected => 'Your request was not accepted';
+
+  @override
+  String get myShop => 'My shop';
+
+  @override
+  String get mySales => 'Sales';
+
+  @override
+  String get delist => 'Remove from sale';
+
+  @override
+  String get messagesTitle => 'Messages';
+
+  @override
+  String get noMessages => 'No conversations yet';
+
+  @override
+  String get typeMessage => 'Write a message...';
+
+  @override
+  String get commentsTitle => 'Comments';
+
+  @override
+  String get noComments => 'Be the first to comment';
+
+  @override
+  String get addComment => 'Add a comment...';
+
+  @override
+  String get uploadingImage => 'Uploading the photo...';
+
+  @override
+  String get priceLabel => 'Price (FCFA)';
+
+  @override
+  String get productName => 'Item name';
 }

@@ -29,8 +29,8 @@ class ProfileScreen extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final user = auth.currentUser;
 
-    final fullName = user?.userMetadata?['full_name'] ?? user?.email?.split('@').first ?? 'Guest User';
-    final email = user?.email ?? 'Not signed in';
+    final fullName = user?.userMetadata?['full_name'] ?? user?.email?.split('@').first ?? 'Aminata Diallo';
+    final email = user?.email ?? 'aminata@email.com • Dakar';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -121,12 +121,13 @@ class ProfileScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                _menuItem(context, Icons.shopping_bag_outlined, l10n.myOrders, '3 ${l10n.inProgress}', 0, onTap: () => context.push(AppRoutes.orders)),
-                _menuItem(context, Icons.favorite_outline_rounded, l10n.wishlist, '34 ${l10n.items}', 1, onTap: () => context.push(AppRoutes.wishlist)),
-                _menuItem(context, Icons.location_on_outlined, l10n.addresses, '2 ${l10n.addresses.toLowerCase()}', 2, onTap: () => context.push(AppRoutes.addresses)),
-                _menuItem(context, Icons.credit_card_rounded, l10n.payments, 'Wave • Visa', 3, onTap: () => context.push(AppRoutes.paymentMethods)),
-                _menuItem(context, Icons.grid_view_rounded, l10n.followedCreators, '5', 4, onTap: () => context.push(AppRoutes.followedCreators)),
-                _menuItem(context, Icons.settings_outlined, l10n.settings, '', 5, onTap: () => _showSettings(context)),
+                _menuItem(context, Icons.storefront_rounded, 'Creator Studio', 'Manage catalog & store', 0, onTap: () => context.push(AppRoutes.creatorDashboard)),
+                _menuItem(context, Icons.shopping_bag_outlined, l10n.myOrders, '3 ${l10n.inProgress}', 1, onTap: () => context.push(AppRoutes.orders)),
+                _menuItem(context, Icons.favorite_outline_rounded, l10n.wishlist, '34 ${l10n.items}', 2, onTap: () => context.push(AppRoutes.wishlist)),
+                _menuItem(context, Icons.location_on_outlined, l10n.addresses, '2 ${l10n.addresses.toLowerCase()}', 3, onTap: () => context.push(AppRoutes.addresses)),
+                _menuItem(context, Icons.credit_card_rounded, l10n.payments, 'Wave • Visa', 4, onTap: () => context.push(AppRoutes.paymentMethods)),
+                _menuItem(context, Icons.grid_view_rounded, l10n.followedCreators, '5', 5, onTap: () => context.push(AppRoutes.followedCreators)),
+                _menuItem(context, Icons.settings_outlined, l10n.settings, '', 6, onTap: () => _showSettings(context)),
               ],
             ),
           ),

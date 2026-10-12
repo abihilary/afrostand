@@ -817,6 +817,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get signOut;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retry;
+
+  /// No description provided for @newLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newLabel;
+
+  /// No description provided for @somethingWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get somethingWrong;
+
+  /// No description provided for @checkConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get checkConnection;
+
+  /// No description provided for @signInToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to continue'**
+  String get signInToContinue;
+
+  /// No description provided for @nothingHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get nothingHere;
+
+  /// No description provided for @emptyCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Your basket is empty'**
+  String get emptyCart;
+
+  /// No description provided for @emptyCartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse the collections and add something you like.'**
+  String get emptyCartHint;
+
+  /// No description provided for @emptyWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved items'**
+  String get emptyWishlist;
+
+  /// No description provided for @emptyOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders yet'**
+  String get emptyOrders;
+
+  /// No description provided for @noAddresses.
+  ///
+  /// In en, this message translates to:
+  /// **'No delivery address saved'**
+  String get noAddresses;
+
+  /// No description provided for @noPaymentMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment method saved'**
+  String get noPaymentMethods;
+
+  /// No description provided for @noFollowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not following anyone yet'**
+  String get noFollowed;
+
+  /// No description provided for @noProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No items yet'**
+  String get noProducts;
+
+  /// No description provided for @noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get noResults;
+
+  /// No description provided for @delivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get delivery;
+
+  /// No description provided for @orderTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get orderTotal;
+
+  /// No description provided for @orderPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed'**
+  String get orderPlaced;
+
+  /// No description provided for @paymentPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment not completed'**
+  String get paymentPending;
+
+  /// No description provided for @paymentPendingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The order is saved. You can pay for it from your orders.'**
+  String get paymentPendingHint;
+
+  /// No description provided for @cancelOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the order'**
+  String get cancelOrder;
+
+  /// No description provided for @addAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an address'**
+  String get addAddress;
+
+  /// No description provided for @editAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the address'**
+  String get editAddress;
+
+  /// No description provided for @setDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Use by default'**
+  String get setDefault;
+
+  /// No description provided for @fullNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get fullNameLabel;
+
+  /// No description provided for @phoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phoneLabel;
+
+  /// No description provided for @addressLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get addressLine;
+
+  /// No description provided for @cityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get cityLabel;
+
+  /// No description provided for @saveLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveLabel;
+
+  /// No description provided for @deleteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteLabel;
+
+  /// No description provided for @addPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a payment method'**
+  String get addPaymentMethod;
+
+  /// No description provided for @cashOnDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash on delivery'**
+  String get cashOnDelivery;
+
+  /// No description provided for @becomeCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell on AfroStand'**
+  String get becomeCreator;
+
+  /// No description provided for @creatorRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request is being reviewed'**
+  String get creatorRequested;
+
+  /// No description provided for @creatorRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request was not accepted'**
+  String get creatorRejected;
+
+  /// No description provided for @myShop.
+  ///
+  /// In en, this message translates to:
+  /// **'My shop'**
+  String get myShop;
+
+  /// No description provided for @mySales.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get mySales;
+
+  /// No description provided for @delist.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from sale'**
+  String get delist;
+
+  /// No description provided for @messagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messagesTitle;
+
+  /// No description provided for @noMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get noMessages;
+
+  /// No description provided for @typeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message...'**
+  String get typeMessage;
+
+  /// No description provided for @commentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get commentsTitle;
+
+  /// No description provided for @noComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the first to comment'**
+  String get noComments;
+
+  /// No description provided for @addComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment...'**
+  String get addComment;
+
+  /// No description provided for @uploadingImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading the photo...'**
+  String get uploadingImage;
+
+  /// No description provided for @priceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price (FCFA)'**
+  String get priceLabel;
+
+  /// No description provided for @productName.
+  ///
+  /// In en, this message translates to:
+  /// **'Item name'**
+  String get productName;
 }
 
 class _AppLocalizationsDelegate

@@ -374,4 +374,147 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signOut => 'Se déconnecter';
+
+  @override
+  String get retry => 'Réessayer';
+
+  @override
+  String get newLabel => 'Nouveau';
+
+  @override
+  String get somethingWrong => 'Une erreur est survenue';
+
+  @override
+  String get checkConnection => 'Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get signInToContinue => 'Connectez-vous pour continuer';
+
+  @override
+  String get nothingHere => 'Rien pour le moment';
+
+  @override
+  String get emptyCart => 'Votre panier est vide';
+
+  @override
+  String get emptyCartHint =>
+      'Parcourez les collections et ajoutez ce qui vous plaît.';
+
+  @override
+  String get emptyWishlist => 'Aucun favori';
+
+  @override
+  String get emptyOrders => 'Aucune commande';
+
+  @override
+  String get noAddresses => 'Aucune adresse enregistrée';
+
+  @override
+  String get noPaymentMethods => 'Aucun moyen de paiement enregistré';
+
+  @override
+  String get noFollowed => 'Vous ne suivez encore personne';
+
+  @override
+  String get noProducts => 'Aucun article';
+
+  @override
+  String get noResults => 'Aucun résultat';
+
+  @override
+  String get delivery => 'Livraison';
+
+  @override
+  String get orderTotal => 'Total';
+
+  @override
+  String get orderPlaced => 'Commande passée';
+
+  @override
+  String get paymentPending => 'Paiement non abouti';
+
+  @override
+  String get paymentPendingHint =>
+      'La commande est enregistrée. Vous pouvez la régler depuis vos commandes.';
+
+  @override
+  String get cancelOrder => 'Annuler la commande';
+
+  @override
+  String get addAddress => 'Ajouter une adresse';
+
+  @override
+  String get editAddress => 'Modifier l\'adresse';
+
+  @override
+  String get setDefault => 'Utiliser par défaut';
+
+  @override
+  String get fullNameLabel => 'Nom complet';
+
+  @override
+  String get phoneLabel => 'Téléphone';
+
+  @override
+  String get addressLine => 'Adresse';
+
+  @override
+  String get cityLabel => 'Ville';
+
+  @override
+  String get saveLabel => 'Enregistrer';
+
+  @override
+  String get deleteLabel => 'Supprimer';
+
+  @override
+  String get addPaymentMethod => 'Ajouter un moyen de paiement';
+
+  @override
+  String get cashOnDelivery => 'Paiement à la livraison';
+
+  @override
+  String get becomeCreator => 'Vendre sur AfroStand';
+
+  @override
+  String get creatorRequested => 'Votre demande est en cours d\'examen';
+
+  @override
+  String get creatorRejected => 'Votre demande n\'a pas été acceptée';
+
+  @override
+  String get myShop => 'Ma boutique';
+
+  @override
+  String get mySales => 'Ventes';
+
+  @override
+  String get delist => 'Retirer de la vente';
+
+  @override
+  String get messagesTitle => 'Messages';
+
+  @override
+  String get noMessages => 'Aucune conversation';
+
+  @override
+  String get typeMessage => 'Écrivez un message...';
+
+  @override
+  String get commentsTitle => 'Commentaires';
+
+  @override
+  String get noComments => 'Soyez le premier à commenter';
+
+  @override
+  String get addComment => 'Ajouter un commentaire...';
+
+  @override
+  String get uploadingImage => 'Envoi de la photo...';
+
+  @override
+  String get priceLabel => 'Prix (FCFA)';
+
+  @override
+  String get productName => 'Nom de l\'article';
 }

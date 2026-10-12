@@ -6,6 +6,10 @@
 -- anon key means "can anon write to products" has exactly one correct answer,
 -- and it should be possible to re-check it after any schema change.
 
+-- Expects a FRESH database: it places an order, settles it and clears a cart,
+-- so a second run against the same database asserts against state the first
+-- run already changed. Recreate the database between runs:
+--   dropdb afs && createdb afs && psql -f _supabase_shim.sql -f ../0001_schema.sql
 \set ON_ERROR_STOP on
 \pset format unaligned
 \pset tuples_only on
@@ -109,8 +113,12 @@ select t_denied('kofi CANNOT list a product (not a creator)',
 -- snapshot, which predates its own writes, and the test would read nothing and
 -- report a failure that is not there.
 create temp table _o as select place_order('dddddddd-0000-0000-0000-000000000001', 500) as id;
+-- 2 x 8000, plus the flat 1500 the server decides. The 500 passed in is
+-- ignored on purpose - see the note above place_order.
 select t_ok('place_order prices from the catalogue, not the caller',
-  (select o.total_xaf from orders o join _o on o.id = _o.id) = 16500);
+  (select o.total_xaf from orders o join _o on o.id = _o.id) = 17500);
+select t_ok('delivery is the server''s figure, not the caller''s',
+  (select o.delivery_xaf from orders o join _o on o.id = _o.id) = 1500);
 select t_ok('cart is cleared by placing the order', (select count(*) from cart_items) = 0);
 select t_ok('order items snapshot the name', (select name from order_items limit 1) = 'Boubou Wax Royal');
 select t_ok('a pending payment was written',
@@ -158,4 +166,30 @@ select t_ok('!! a third party sees no thread', (select count(*) from threads) = 
 select t_denied('a third party CANNOT post into their thread',
   $$insert into messages (thread_id, sender_id, body)
     select id, '33333333-3333-3333-3333-333333333333', 'intruding' from _t$$);
+reset role;
+
+-- ═══ THE STUB SEAM ═════════════════════════════════════════════════════════
+-- settle_stub_payment is the one function a customer could abuse while the
+-- gateway is fake. These assert the limits that make that tolerable: own order
+-- only, pending only.
+set role authenticated;
+select set_config('request.jwt.claim.sub', '22222222-2222-2222-2222-222222222222', false);
+
+select settle_stub_payment((select id from _o), 'STUB-TEST');
+select t_ok('settling marks the payment succeeded',
+  (select status from payments where order_id = (select id from _o)) = 'succeeded');
+select t_ok('settling marks the order paid',
+  (select status from orders where id = (select id from _o)) = 'paid');
+
+-- Already paid: the `status = 'pending'` guard means a replay changes nothing,
+-- so a retry or a double tap cannot re-settle anything.
+select settle_stub_payment((select id from _o), 'STUB-REPLAY');
+select t_ok('a replay does not overwrite the reference',
+  (select provider_ref from payments where order_id = (select id from _o)) = 'STUB-TEST');
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub', '33333333-3333-3333-3333-333333333333', false);
+select t_denied('a stranger CANNOT settle somebody else''s order',
+  $$select settle_stub_payment((select id from _o), 'STUB-THEFT')$$);
 reset role;

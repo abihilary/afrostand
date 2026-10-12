@@ -98,9 +98,15 @@
   "orderPrep": "Merci {name} ! Ta commande #{orderId} est en préparation. Livraison prévue {deliveryTime}.",
   "@orderPrep": {
     "placeholders": {
-      "name": { "type": "String" },
-      "orderId": { "type": "String" },
-      "deliveryTime": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "orderId": {
+        "type": "String"
+      },
+      "deliveryTime": {
+        "type": "String"
+      }
     }
   },
   "trackOrder": "Suivre ma commande",
@@ -126,5 +132,52 @@
   "unfollow": "Ne plus suivre",
   "searchPlaceholder": "Boubou, wax, Dakar...",
   "verified": "Vérifié",
-  "signOut": "Se déconnecter"
+  "signOut": "Se déconnecter",
+  "retry": "Réessayer",
+  "newLabel": "Nouveau",
+  "somethingWrong": "Une erreur est survenue",
+  "checkConnection": "Vérifiez votre connexion et réessayez.",
+  "signInToContinue": "Connectez-vous pour continuer",
+  "nothingHere": "Rien pour le moment",
+  "emptyCart": "Votre panier est vide",
+  "emptyCartHint": "Parcourez les collections et ajoutez ce qui vous plaît.",
+  "emptyWishlist": "Aucun favori",
+  "emptyOrders": "Aucune commande",
+  "noAddresses": "Aucune adresse enregistrée",
+  "noPaymentMethods": "Aucun moyen de paiement enregistré",
+  "noFollowed": "Vous ne suivez encore personne",
+  "noProducts": "Aucun article",
+  "noResults": "Aucun résultat",
+  "delivery": "Livraison",
+  "orderTotal": "Total",
+  "orderPlaced": "Commande passée",
+  "paymentPending": "Paiement non abouti",
+  "paymentPendingHint": "La commande est enregistrée. Vous pouvez la régler depuis vos commandes.",
+  "cancelOrder": "Annuler la commande",
+  "addAddress": "Ajouter une adresse",
+  "editAddress": "Modifier l'adresse",
+  "setDefault": "Utiliser par défaut",
+  "fullNameLabel": "Nom complet",
+  "phoneLabel": "Téléphone",
+  "addressLine": "Adresse",
+  "cityLabel": "Ville",
+  "saveLabel": "Enregistrer",
+  "deleteLabel": "Supprimer",
+  "addPaymentMethod": "Ajouter un moyen de paiement",
+  "cashOnDelivery": "Paiement à la livraison",
+  "becomeCreator": "Vendre sur AfroStand",
+  "creatorRequested": "Votre demande est en cours d'examen",
+  "creatorRejected": "Votre demande n'a pas été acceptée",
+  "myShop": "Ma boutique",
+  "mySales": "Ventes",
+  "delist": "Retirer de la vente",
+  "messagesTitle": "Messages",
+  "noMessages": "Aucune conversation",
+  "typeMessage": "Écrivez un message...",
+  "commentsTitle": "Commentaires",
+  "noComments": "Soyez le premier à commenter",
+  "addComment": "Ajouter un commentaire...",
+  "uploadingImage": "Envoi de la photo...",
+  "priceLabel": "Prix (FCFA)",
+  "productName": "Nom de l'article"
 }

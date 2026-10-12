@@ -98,9 +98,15 @@
   "orderPrep": "Thank you {name}! Your order #{orderId} is being prepared. Delivery scheduled for {deliveryTime}.",
   "@orderPrep": {
     "placeholders": {
-      "name": { "type": "String" },
-      "orderId": { "type": "String" },
-      "deliveryTime": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "orderId": {
+        "type": "String"
+      },
+      "deliveryTime": {
+        "type": "String"
+      }
     }
   },
   "trackOrder": "Track my order",
@@ -126,5 +132,52 @@
   "unfollow": "Unfollow",
   "searchPlaceholder": "Boubou, wax, Dakar...",
   "verified": "Verified",
-  "signOut": "Sign out"
+  "signOut": "Sign out",
+  "retry": "Try again",
+  "newLabel": "New",
+  "somethingWrong": "Something went wrong",
+  "checkConnection": "Check your connection and try again.",
+  "signInToContinue": "Sign in to continue",
+  "nothingHere": "Nothing here yet",
+  "emptyCart": "Your basket is empty",
+  "emptyCartHint": "Browse the collections and add something you like.",
+  "emptyWishlist": "No saved items",
+  "emptyOrders": "No orders yet",
+  "noAddresses": "No delivery address saved",
+  "noPaymentMethods": "No payment method saved",
+  "noFollowed": "You are not following anyone yet",
+  "noProducts": "No items yet",
+  "noResults": "No results",
+  "delivery": "Delivery",
+  "orderTotal": "Total",
+  "orderPlaced": "Order placed",
+  "paymentPending": "Payment not completed",
+  "paymentPendingHint": "The order is saved. You can pay for it from your orders.",
+  "cancelOrder": "Cancel the order",
+  "addAddress": "Add an address",
+  "editAddress": "Edit the address",
+  "setDefault": "Use by default",
+  "fullNameLabel": "Full name",
+  "phoneLabel": "Phone",
+  "addressLine": "Address",
+  "cityLabel": "City",
+  "saveLabel": "Save",
+  "deleteLabel": "Delete",
+  "addPaymentMethod": "Add a payment method",
+  "cashOnDelivery": "Cash on delivery",
+  "becomeCreator": "Sell on AfroStand",
+  "creatorRequested": "Your request is being reviewed",
+  "creatorRejected": "Your request was not accepted",
+  "myShop": "My shop",
+  "mySales": "Sales",
+  "delist": "Remove from sale",
+  "messagesTitle": "Messages",
+  "noMessages": "No conversations yet",
+  "typeMessage": "Write a message...",
+  "commentsTitle": "Comments",
+  "noComments": "Be the first to comment",
+  "addComment": "Add a comment...",
+  "uploadingImage": "Uploading the photo...",
+  "priceLabel": "Price (FCFA)",
+  "productName": "Item name"
 }

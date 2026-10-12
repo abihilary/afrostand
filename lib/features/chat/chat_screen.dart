@@ -1,126 +1,174 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../app/constants.dart';
+import '../../core/api/repositories.dart';
 import '../../generated/l10n/app_localizations.dart';
+import '../../shared/models/models.dart' as m;
 
-class ChatScreen extends StatelessWidget {
-  const ChatScreen({super.key});
+/// One conversation, live.
+///
+/// The messages arrive over Supabase Realtime, and the socket carries the
+/// session's JWT so RLS applies to it exactly as it does to a REST read. The
+/// failure mode worth knowing: an unauthenticated socket is not an error, it
+/// simply delivers nothing — a conversation that looks quiet rather than
+/// broken. That is why the history is fetched over REST first; if the socket
+/// is dead you still see what was already said.
+class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key, required this.threadId});
+
+  final String threadId;
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final _repo = ChatRepository();
+  final _controller = TextEditingController();
+  final _scroll = ScrollController();
+
+  List<m.Message> _messages = [];
+  RealtimeChannel? _channel;
+  bool _loading = true;
+  Object? _error;
+  bool _sending = false;
+
+  String? get _me => Supabase.instance.client.auth.currentUser?.id;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final msgs = await _repo.messages(widget.threadId);
+      if (!mounted) return;
+      setState(() {
+        _messages = msgs;
+        _loading = false;
+      });
+      _subscribe();
+      unawaited(_repo.markRead(widget.threadId));
+      _scrollToEnd();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e;
+        _loading = false;
+      });
+    }
+  }
+
+  void _subscribe() {
+    _channel = _repo.subscribeToThread(widget.threadId, (msg) {
+      if (!mounted) return;
+      // The sender already appended its own message optimistically, and the
+      // insert comes back over the socket too — without this check every
+      // message you send appears twice on your own screen.
+      if (_messages.any((m) => m.id == msg.id)) return;
+      setState(() => _messages = [..._messages, msg]);
+      _scrollToEnd();
+      unawaited(_repo.markRead(widget.threadId));
+    });
+  }
+
+  void _scrollToEnd() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) {
+        _scroll.animateTo(_scroll.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 240), curve: Curves.easeOut);
+      }
+    });
+  }
+
+  Future<void> _send() async {
+    final body = _controller.text.trim();
+    if (body.isEmpty || _sending) return;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _sending = true);
+    _controller.clear();
+    try {
+      final sent = await _repo.send(widget.threadId, body);
+      if (!mounted) return;
+      if (!_messages.any((m) => m.id == sent.id)) {
+        setState(() => _messages = [..._messages, sent]);
+      }
+      _scrollToEnd();
+    } catch (e) {
+      if (!mounted) return;
+      // Put the text back. Losing somebody's message because the network
+      // blinked is the one thing a chat must not do.
+      _controller.text = body;
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    final c = _channel;
+    if (c != null) Supabase.instance.client.removeChannel(c);
+    _controller.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.pop(),
-        ),
-        title: Row(
-          children: [
-            const CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage(AppAssets.model4),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'James Lee',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                ),
-                Text(
-                  '${l10n.online} • ${l10n.respondsFast}',
-                  style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_horiz_rounded),
-            onPressed: () {},
-          ),
-        ],
+        backgroundColor: theme.scaffoldBackgroundColor,
+        elevation: 0,
+        leading: BackButton(onPressed: () => context.pop()),
+        title: Text(l10n.messagesTitle,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
       ),
       body: Column(
         children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                _ChatBubble(
-                  message: 'Salut! J’ai vu ton partage, ce boubou est incroyable 😍 Tu l’as pris où?',
-                  time: '10:24',
-                  isMe: false,
-                ),
-                _ChatBubble(
-                  message: 'Chez MIDE Stores sur Afrostand! -33% aujourd’hui',
-                  time: '10:26',
-                  isMe: true,
-                  image: AppAssets.model1,
-                ),
-                _ChatBubble(
-                  message: 'Waw je commande direct! Tu veux qu’on match nos tenues pour samedi?',
-                  time: '10:27',
-                  isMe: false,
-                ),
-              ],
-            ),
-          ),
-          
-          // Input Area
+          Expanded(child: _body(l10n, theme)),
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05))),
+              color: theme.cardColor,
+              border: Border(top: BorderSide(color: theme.dividerColor)),
             ),
             child: Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.05),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.add_rounded, color: AppColors.dark),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
-                  child: Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: l10n.writeMessage,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
+                  child: TextField(
+                    controller: _controller,
+                    minLines: 1,
+                    maxLines: 4,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _send(),
+                    decoration: InputDecoration(
+                      hintText: l10n.typeMessage,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(color: theme.dividerColor),
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: const BoxDecoration(
-                    color: AppColors.dark,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  onPressed: _sending ? null : _send,
+                  icon: _sending
+                      ? const SizedBox(
+                          width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.send_rounded, size: 18),
                 ),
               ],
             ),
@@ -129,36 +177,66 @@ class ChatScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _body(AppLocalizations l10n, ThemeData theme) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cloud_off_rounded, size: 40, color: theme.hintColor),
+            const SizedBox(height: 12),
+            Text(l10n.somethingWrong),
+            const SizedBox(height: 16),
+            OutlinedButton(onPressed: _load, child: Text(l10n.retry)),
+          ],
+        ),
+      );
+    }
+    if (_messages.isEmpty) {
+      return Center(
+        child: Text(l10n.noMessages, style: TextStyle(color: theme.hintColor)),
+      );
+    }
+    return ListView.builder(
+      controller: _scroll,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      itemCount: _messages.length,
+      itemBuilder: (context, i) {
+        final msg = _messages[i];
+        return _ChatBubble(
+          message: msg.body,
+          time: _time(msg.createdAt),
+          isMe: msg.senderId == _me,
+        );
+      },
+    );
+  }
+
+  static String _time(DateTime? t) {
+    if (t == null) return '';
+    return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+  }
 }
 
 class _ChatBubble extends StatelessWidget {
   final String message;
   final String time;
   final bool isMe;
-  final String? image;
 
-  const _ChatBubble({
-    required this.message,
-    required this.time,
-    required this.isMe,
-    this.image,
-  });
+  const _ChatBubble({required this.message, required this.time, required this.isMe});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMe) ...[
-            const CircleAvatar(
-              radius: 14,
-              backgroundImage: NetworkImage(AppAssets.model4),
-            ),
-            const SizedBox(width: 8),
-          ],
           Flexible(
             child: Column(
               crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -166,7 +244,9 @@ class _ChatBubble extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isMe ? AppColors.dark : Colors.white,
+                    color: isMe
+                        ? AppColors.dark
+                        : (isDark ? theme.cardColor : Colors.white),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
@@ -174,39 +254,31 @@ class _ChatBubble extends StatelessWidget {
                       bottomRight: Radius.circular(isMe ? 4 : 20),
                     ),
                     boxShadow: [
-                      if (!isMe) BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4),
+                      if (!isMe && !isDark)
+                        BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        message,
-                        style: TextStyle(
-                          color: isMe ? Colors.white : AppColors.dark,
-                          fontSize: 13,
-                          height: 1.4,
-                        ),
-                      ),
-                      if (image != null) ...[
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(image!, height: 120, width: double.infinity, fit: BoxFit.cover),
-                        ),
-                      ],
-                    ],
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      color: isMe
+                          ? Colors.white
+                          : (isDark ? Colors.white : AppColors.dark),
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$time ${isMe ? '• Lu' : ''}',
-                  style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.3), fontWeight: FontWeight.bold),
+                  time,
+                  style: TextStyle(
+                      fontSize: 10, color: theme.hintColor, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
-          if (isMe) const SizedBox(width: 8),
         ],
       ),
     );

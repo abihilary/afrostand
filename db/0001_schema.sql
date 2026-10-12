@@ -564,6 +564,14 @@ end $$;
 -- Prices come from the products table inside this function. The app passes an
 -- address and nothing else — no totals, no line prices. A client that sends a
 -- cheaper number has nowhere to send it.
+-- Delivery is decided here, not sent. The signature still takes the argument so
+-- an older build does not break, but the value is ignored: a client that posts
+-- `p_delivery_xaf = 0` is a client that has patched out the shipping fee, and
+-- there is no way to tell that apart from an honest one.
+--
+-- A flat rate with a free threshold, which is what the cart has always shown.
+-- When there is a real rate card (by city, by weight) it becomes a table read
+-- here — still server side.
 create or replace function place_order(p_address_id uuid, p_delivery_xaf integer default 0)
 returns uuid
 language plpgsql
@@ -574,14 +582,13 @@ declare
   v_user     uuid := auth.uid();
   v_order    uuid;
   v_subtotal integer;
+  v_delivery integer;
   v_ship     jsonb;
+  c_flat     constant integer := 1500;
+  c_free_over constant integer := 50000;
 begin
   if v_user is null then
     raise exception 'not signed in';
-  end if;
-
-  if p_delivery_xaf < 0 then
-    raise exception 'delivery cannot be negative';
   end if;
 
   -- The address must belong to the caller. Without this check anyone could
@@ -603,8 +610,10 @@ begin
     raise exception 'cart is empty';
   end if;
 
+  v_delivery := case when v_subtotal >= c_free_over then 0 else c_flat end;
+
   insert into orders (user_id, subtotal_xaf, delivery_xaf, total_xaf, ship_to)
-  values (v_user, v_subtotal, p_delivery_xaf, v_subtotal + p_delivery_xaf, v_ship)
+  values (v_user, v_subtotal, v_delivery, v_subtotal + v_delivery, v_ship)
   returning id into v_order;
 
   insert into order_items (order_id, product_id, creator_id, name, image_url, unit_price_xaf, qty, size, color)
@@ -613,7 +622,7 @@ begin
     join products p on p.id = ci.product_id
    where ci.user_id = v_user and p.is_active;
 
-  insert into payments (order_id, amount_xaf) values (v_order, v_subtotal + p_delivery_xaf);
+  insert into payments (order_id, amount_xaf) values (v_order, v_subtotal + v_delivery);
 
   delete from cart_items where user_id = v_user;
 
@@ -647,6 +656,73 @@ begin
   insert into threads (a_id, b_id) values (v_a, v_b) returning id into v_id;
   return v_id;
 end $$;
+
+-- ⚠ THE STUB'S SEAM — DELETE THIS WHEN A REAL PROVIDER ARRIVES ⚠
+--
+-- Settles a payment the app says went through. With a stubbed gateway there is
+-- no honest alternative: nothing but the client knows the charge "happened", so
+-- the client has to say so. That makes this the one function here a determined
+-- customer could abuse to mark their own order paid without paying.
+--
+-- It is tolerable only because the gateway is a stub and no money moves either
+-- way. The moment Campay or MoMo is wired up, this function is dropped and the
+-- provider's webhook does the same job from the server side, where the claim
+-- comes from whoever actually took the money.
+--
+-- It is deliberately narrow even so: it only ever moves a *pending* payment on
+-- the caller's *own* order, so it cannot re-settle, cannot refund, and cannot
+-- touch somebody else's order.
+create or replace function settle_stub_payment(p_order_id uuid, p_reference text)
+returns void
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare v_user uuid := auth.uid();
+begin
+  if v_user is null then raise exception 'not signed in'; end if;
+
+  if not exists (select 1 from orders o where o.id = p_order_id and o.user_id = v_user) then
+    raise exception 'no such order';
+  end if;
+
+  update payments
+     set status = 'succeeded', provider_ref = p_reference, updated_at = now()
+   where order_id = p_order_id and status = 'pending';
+
+  update orders set status = 'paid' where id = p_order_id and status = 'pending';
+end $$;
+
+-- Cancelling is the buyer's to do and carries no such caveat.
+create or replace function cancel_my_order(p_order_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if auth.uid() is null then raise exception 'not signed in'; end if;
+  update orders
+     set status = 'cancelled'
+   where id = p_order_id and user_id = auth.uid() and status in ('pending', 'paid');
+  update payments
+     set status = 'cancelled', updated_at = now()
+   where order_id = p_order_id and status = 'pending';
+end $$;
+
+revoke all on function settle_stub_payment(uuid, text) from public;
+grant execute on function settle_stub_payment(uuid, text) to authenticated;
+revoke all on function cancel_my_order(uuid) from public;
+grant execute on function cancel_my_order(uuid) to authenticated;
+-- So the cart can show the figure the server will actually charge, rather than
+-- a second copy of the rule in Dart that can drift from this one.
+create or replace function delivery_quote(p_subtotal_xaf integer)
+returns integer
+language sql
+immutable
+as $$ select case when p_subtotal_xaf >= 50000 then 0 else 1500 end $$;
+
+grant execute on function delivery_quote(integer) to anon, authenticated;
 
 revoke all on function place_order(uuid, integer) from public;
 grant execute on function place_order(uuid, integer) to authenticated;
