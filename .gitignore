@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local Postgres used to test db/apply.sql before it is pasted into Supabase.
+db/test/*.local.sql
