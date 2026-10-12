@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
+import '../../core/providers/settings_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../app/constants.dart';
 import '../../app/routes.dart';
@@ -17,9 +19,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   int _currentPage = 0;
 
+  /// Leave onboarding for good.
+  ///
+  /// The mark is not cosmetic. The router sends every location back to
+  /// `/onboarding` while `hasSeenOnboarding` is false, so a `context.go` on
+  /// its own was bounced straight back here and the button looked dead.
+  void _finish() {
+    context.read<AppSettings>().markOnboarded();
+    context.go(AppRoutes.home);
+  }
+
   void _next() {
     if (_currentPage == 2) {
-      context.go(AppRoutes.home);
+      _finish();
       return;
     }
     _controller.nextPage(
@@ -37,7 +49,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           _DiscoverySlide(onNext: _next),
           _SocialSlide(onNext: _next),
-          _MarketplaceSlide(onStart: () => context.go(AppRoutes.home)),
+          _MarketplaceSlide(onStart: _finish),
         ],
       ),
     );

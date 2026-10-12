@@ -11,6 +11,7 @@ import '../../shared/widgets/shimmer_placeholder.dart';
 import '../../shared/models/models.dart';
 import '../../core/providers/catalog_provider.dart';
 import '../../core/providers/profile_provider.dart';
+import '../../core/providers/shop_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -57,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // somebody else's name is a small thing that makes an app feel fake.
     final profileP = context.watch<ProfileProvider>();
     final catalog = context.watch<CatalogProvider>();
+    final cartCount = context.watch<ShopProvider>().cartCount;
     final fullName = profileP.me?.fullName ??
         user?.userMetadata?['full_name'] ??
         user?.email?.split('@').first ??
@@ -96,11 +98,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 44,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        image: const DecorationImage(
-                          image: NetworkImage(AppAssets.model2),
-                          fit: BoxFit.cover,
-                        ),
+                        color: theme.cardColor,
+                        border: Border.all(color: theme.dividerColor),
+                        image: (profileP.me?.avatarUrl?.isNotEmpty ?? false)
+                            ? DecorationImage(
+                                image: NetworkImage(profileP.me!.avatarUrl!),
+                                fit: BoxFit.cover)
+                            : null,
                       ),
+                      child: (profileP.me?.avatarUrl?.isNotEmpty ?? false)
+                          ? null
+                          : Icon(Icons.person_outline_rounded,
+                              size: 20, color: theme.hintColor),
                     ),
                     const SizedBox(width: 12),
                     Column(
@@ -124,11 +133,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const Spacer(),
-                    _headerAction(Icons.favorite_outline_rounded, onTap: () {}),
+                    _headerAction(Icons.favorite_outline_rounded,
+                        onTap: () => context.push(AppRoutes.wishlist)),
                     const SizedBox(width: 8),
-                    _headerAction(Icons.shopping_bag_outlined, badgeCount: 2, onTap: () {
-                      context.push(AppRoutes.cart);
-                    }),
+                    // Was the literal 2, so an empty cart wore a badge saying
+                    // there were two things in it.
+                    _headerAction(Icons.shopping_bag_outlined,
+                        badgeCount: cartCount == 0 ? null : cartCount,
+                        onTap: () => context.go(AppRoutes.cart)),
                   ],
                 ).animate().fade(duration: 400.ms).slideY(begin: -0.2),
               ),
@@ -326,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () => context.go(AppRoutes.search),
                       child: Text(
                         l10n.seeAll,
                         style: TextStyle(
@@ -342,19 +354,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 12),
 
+              // Five hardcoded names over stock photographs, and a tap that
+              // built its URL out of a function reference. These are the real
+              // categories now, and tapping one opens that category.
               SizedBox(
                 height: 90,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: [
-                    _categoryItem(context, l10n.local, AppAssets.model1),
-                    _categoryItem(context, 'Bijoux', AppAssets.model2),
-                    _categoryItem(context, 'Cuir', AppAssets.model3),
-                    _categoryItem(context, 'Raphia', AppAssets.model4),
-                    _categoryItem(context, l10n.sustainable, AppAssets.model5),
-                  ],
-                ),
+                child: catalog.categories.isEmpty
+                    ? const SizedBox.shrink()
+                    : ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: [
+                          for (final c in catalog.categories) _categoryItem(context, c),
+                        ],
+                      ),
               ),
 
               const SizedBox(height: 32),
@@ -464,16 +477,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _categoryItem(BuildContext context, String title, String imageUrl) {
+  Widget _categoryItem(BuildContext context, ProductCategory c) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final image = c.imageUrl ?? '';
 
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: AnimatedPressable(
-        onTap: () {
-          context.go('${AppRoutes.home}/${AppRoutes.categoryFeed}?title=${Uri.encodeComponent(title)}&image=${Uri.encodeComponent(imageUrl)}');
-        },
+        onTap: () => context.go(AppRoutes.categoryFeed(c.slug)),
         child: Column(
           children: [
             Container(
@@ -481,10 +493,10 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 56,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                ),
+                color: theme.cardColor,
+                image: image.isEmpty
+                    ? null
+                    : DecorationImage(image: NetworkImage(image), fit: BoxFit.cover),
                 border: Border.all(
                   color: isDark ? Colors.white24 : AppColors.orange.withOpacity(0.5),
                   width: 2,
@@ -493,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              title,
+              c.name,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,

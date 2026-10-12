@@ -28,6 +28,16 @@ begin
       v_email;
   end if;
 
+  -- The profile may genuinely be missing: handle_new_user() fires on insert
+  -- into auth.users, so an account created while testing sign-in — before the
+  -- schema existed — never got one. The first version of this file assumed
+  -- otherwise, the UPDATE below matched nothing, and the creators insert then
+  -- failed on creators_profile_id_fkey. Create it if it is not there.
+  insert into profiles (id, full_name)
+  values (v_uid, (select nullif(raw_user_meta_data->>'full_name', '')
+                    from auth.users where id = v_uid))
+  on conflict (id) do nothing;
+
   -- Approval. The app cannot write this column - the profiles update policy
   -- forbids it - which is the point: wanting to sell and being allowed to
   -- sell stay separate things.
@@ -50,6 +60,15 @@ begin
 
   raise notice 'Seller ready: % (%)', v_email, v_uid;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- Same gap, everybody else: accounts that predate the schema have no profile.
+-- Harmless to run, and it is why the app shows nothing for such an account.
+-- ---------------------------------------------------------------------------
+insert into profiles (id, full_name)
+select u.id, nullif(u.raw_user_meta_data->>'full_name', '')
+  from auth.users u
+ where not exists (select 1 from profiles p where p.id = u.id);
 
 -- Confirm (edit the email here too):
 -- select p.creator_status, c.name, c.slug, c.is_approved

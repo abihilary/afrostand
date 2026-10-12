@@ -108,47 +108,6 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
-
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: theme.dividerColor)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          AppLocalizations.of(context)!.or,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? Colors.white24 : Colors.black26),
-                        ),
-                      ),
-                      Expanded(child: Divider(color: theme.dividerColor)),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _socialButton(
-                          context: context,
-                          icon: 'G',
-                          label: 'Google',
-                          onPressed: () {},
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _socialButton(
-                          context: context,
-                          icon: 'f',
-                          label: 'Facebook',
-                          color: const Color(0xFF1877F2),
-                          textColor: Colors.white,
-                          onPressed: () {},
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
 
@@ -167,61 +126,6 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(height: 24),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _socialButton({
-    required BuildContext context,
-    required String icon,
-    required String label,
-    required VoidCallback onPressed,
-    Color? color,
-    Color? textColor,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return AnimatedPressable(
-      onTap: onPressed,
-      child: Container(
-        height: 52,
-        decoration: BoxDecoration(
-          color: color ?? (isDark ? Colors.white.withOpacity(0.05) : Colors.transparent),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color == null ? Theme.of(context).dividerColor : Colors.transparent),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.black.withOpacity(0.1), width: 0.5),
-              ),
-              child: Center(
-                child: Text(
-                  icon,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: color ?? AppColors.dark,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: textColor ?? (isDark ? Colors.white : AppColors.dark),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
         ),
       ),
     );

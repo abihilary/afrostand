@@ -103,6 +103,15 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
 
+-- Backfill. The trigger only fires on new signups, and accounts created while
+-- testing sign-in — before this schema existed — have no profile row at all.
+-- Without this they hit a foreign key the first time anything references them,
+-- and `update profiles ... where id = <them>` quietly matches nothing.
+insert into profiles (id, full_name)
+select u.id, nullif(u.raw_user_meta_data->>'full_name', '')
+  from auth.users u
+ where not exists (select 1 from profiles p where p.id = u.id);
+
 -- A storefront. profile_id is nullable because the seeded catalogue creators
 -- are not accounts — they are the shops the marketplace launched with, and they
 -- get claimed later.
