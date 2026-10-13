@@ -412,7 +412,7 @@ class SocialRepository {
   Future<List<PostComment>> comments(String postId) async {
     final res = await _db
         .from('post_comments')
-        .select('*, profiles(*)')
+        .select('*, profiles(id, full_name, avatar_url, creator_status, created_at)')
         .eq('post_id', postId)
         .order('created_at');
     return _rows(res).map(PostComment.fromJson).toList();
@@ -424,7 +424,7 @@ class SocialRepository {
     final res = await _db
         .from('post_comments')
         .insert({'post_id': postId, 'user_id': uid, 'body': body})
-        .select('*, profiles(*)')
+        .select('*, profiles(id, full_name, avatar_url, creator_status, created_at)')
         .single();
     return PostComment.fromJson(res);
   }
@@ -490,7 +490,13 @@ class ChatRepository {
     final out = <ChatThread>[];
     for (final r in _rows(res)) {
       final otherId = r['a_id'].toString() == uid ? r['b_id'].toString() : r['a_id'].toString();
-      final other = await _db.from('profiles').select().eq('id', otherId).maybeSingle();
+      // Explicit columns, not `*`: the star includes phone, which this role is
+      // deliberately not granted, and would fail the whole inbox query.
+      final other = await _db
+          .from('profiles')
+          .select('id, full_name, avatar_url, creator_status, created_at')
+          .eq('id', otherId)
+          .maybeSingle();
       final last = await _db
           .from('messages')
           .select('body')
@@ -568,8 +574,15 @@ class ProfileRepository {
   Future<Profile?> me() async {
     final uid = _uid;
     if (uid == null) return null;
-    final res = await _db.from('profiles').select().eq('id', uid).maybeSingle();
-    return res == null ? null : Profile.fromJson(res);
+    // Through a function, not a select. `profiles` is world-readable by policy
+    // because a chat and a comment need a stranger's name — but the row also
+    // carries a phone number, and a column grant cannot say "everyone sees the
+    // name, you also see your own phone". So anon and authenticated are
+    // granted the public columns only, and this is how you read your own row
+    // in full. See db/0007_security.sql.
+    final res = await _db.rpc('my_profile');
+    final row = res is List ? (res.isEmpty ? null : res.first) : res;
+    return row == null ? null : Profile.fromJson((row as Map).cast<String, dynamic>());
   }
 
   Future<void> updateMe({String? fullName, String? avatarUrl, String? phone, String? locale, String? theme}) async {

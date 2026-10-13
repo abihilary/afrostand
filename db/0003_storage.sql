@@ -15,61 +15,73 @@
 -- shape changes, these change with it.
 -- ===========================================================================
 
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values
-  -- Public read: a product photo is the shop window, and signing every URL
-  -- would mean the catalogue could not be cached or shared.
-  ('product-images', 'product-images', true, 5242880,
-   array['image/jpeg', 'image/png', 'image/webp']),
-  ('avatars', 'avatars', true, 2097152,
-   array['image/jpeg', 'image/png', 'image/webp'])
-on conflict (id) do update
-  set public             = excluded.public,
-      file_size_limit    = excluded.file_size_limit,
-      allowed_mime_types = excluded.allowed_mime_types;
+-- Wrapped so this file can live in db/apply.sql: Supabase always has the
+-- storage schema, a local test database does not, and a bundle that dies
+-- halfway through on a laptop cannot be tested before it is pasted.
+do $do$
+begin
+if to_regclass('storage.objects') is null then
+  raise notice 'no storage schema here - skipping buckets and their policies';
+  return;
+end if;
 
--- A size limit and a mime allow-list are not tidiness. Without them any
--- signed-in account can push arbitrary files of arbitrary size into a public
--- bucket on your project's quota, and serve them from your domain.
+  insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+  values
+    -- Public read: a product photo is the shop window, and signing every URL
+    -- would mean the catalogue could not be cached or shared.
+    ('product-images', 'product-images', true, 5242880,
+     array['image/jpeg', 'image/png', 'image/webp']),
+    ('avatars', 'avatars', true, 2097152,
+     array['image/jpeg', 'image/png', 'image/webp'])
+  on conflict (id) do update
+    set public             = excluded.public,
+        file_size_limit    = excluded.file_size_limit,
+        allowed_mime_types = excluded.allowed_mime_types;
 
--- ── Reading ────────────────────────────────────────────────────────────────
-drop policy if exists "afrostand images are public" on storage.objects;
-create policy "afrostand images are public"
-  on storage.objects for select
-  using (bucket_id in ('product-images', 'avatars'));
+  -- A size limit and a mime allow-list are not tidiness. Without them any
+  -- signed-in account can push arbitrary files of arbitrary size into a public
+  -- bucket on your project's quota, and serve them from your domain.
 
--- ── Writing: your own folder, nobody else's ────────────────────────────────
-drop policy if exists "afrostand upload own folder" on storage.objects;
-create policy "afrostand upload own folder"
-  on storage.objects for insert
-  to authenticated
-  with check (
-    bucket_id in ('product-images', 'avatars')
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  -- ── Reading ────────────────────────────────────────────────────────────────
+  drop policy if exists "afrostand images are public" on storage.objects;
+  create policy "afrostand images are public"
+    on storage.objects for select
+    using (bucket_id in ('product-images', 'avatars'));
 
-drop policy if exists "afrostand update own files" on storage.objects;
-create policy "afrostand update own files"
-  on storage.objects for update
-  to authenticated
-  using (
-    bucket_id in ('product-images', 'avatars')
-    and (storage.foldername(name))[1] = auth.uid()::text
-  )
-  with check (
-    bucket_id in ('product-images', 'avatars')
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  -- ── Writing: your own folder, nobody else's ────────────────────────────────
+  drop policy if exists "afrostand upload own folder" on storage.objects;
+  create policy "afrostand upload own folder"
+    on storage.objects for insert
+    to authenticated
+    with check (
+      bucket_id in ('product-images', 'avatars')
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
 
-drop policy if exists "afrostand delete own files" on storage.objects;
-create policy "afrostand delete own files"
-  on storage.objects for delete
-  to authenticated
-  using (
-    bucket_id in ('product-images', 'avatars')
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  drop policy if exists "afrostand update own files" on storage.objects;
+  create policy "afrostand update own files"
+    on storage.objects for update
+    to authenticated
+    using (
+      bucket_id in ('product-images', 'avatars')
+      and (storage.foldername(name))[1] = auth.uid()::text
+    )
+    with check (
+      bucket_id in ('product-images', 'avatars')
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
+
+  drop policy if exists "afrostand delete own files" on storage.objects;
+  create policy "afrostand delete own files"
+    on storage.objects for delete
+    to authenticated
+    using (
+      bucket_id in ('product-images', 'avatars')
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
 
 -- Check it took:
---   select id, public, file_size_limit from storage.buckets
---    where id in ('product-images', 'avatars');
+  --   select id, public, file_size_limit from storage.buckets
+  --    where id in ('product-images', 'avatars');
+end
+$do$;

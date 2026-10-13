@@ -181,9 +181,17 @@ select t_ok('settling marks the payment succeeded',
 select t_ok('settling marks the order paid',
   (select status from orders where id = (select id from _o)) = 'paid');
 
--- Already paid: the `status = 'pending'` guard means a replay changes nothing,
--- so a retry or a double tap cannot re-settle anything.
-select settle_stub_payment((select id from _o), 'STUB-REPLAY');
+-- Already paid. This used to pass silently and change nothing; after
+-- 0007_security.sql it raises, because an order may only reach 'paid' when a
+-- payment actually moved — the old version updated the order whatever happened
+-- to the payment row, which is what turned a cancelled payment into a paid
+-- order.
+do $$ begin
+  perform settle_stub_payment((select id from _o), 'STUB-REPLAY');
+  raise notice '!! FAIL  a settled order could be settled again';
+exception when others then
+  raise notice 'PASS  a settled order CANNOT be settled again (%)', sqlerrm;
+end $$;
 select t_ok('a replay does not overwrite the reference',
   (select provider_ref from payments where order_id = (select id from _o)) = 'STUB-TEST');
 reset role;

@@ -17,8 +17,8 @@ python3 "$HERE/build_seed.py" >/dev/null
 -- DO NOTHING against a deterministic id.
 --
 -- Verified before shipping, against a local Postgres with an auth shim:
--- 17 tables, all with RLS, 29 policies, db/test/rls_test.sql passing 32/32 and
--- db/test/fulfilment_test.sql passing 16/16, including "one seller cannot ship
+-- 17 tables, all with RLS, 29 policies, db/test/rls_test.sql passing 33/33,
+-- db/test/fulfilment_test.sql 16/16 and db/test/security_test.sql 17/17, including "one seller cannot ship
 -- another seller's goods",
 -- "anon cannot write to products" and "a third party reads nothing from a chat
 -- thread".
@@ -30,6 +30,10 @@ HDR
   cat "$HERE/0005_fulfilment.sql"
   echo
   cat "$HERE/0006_realtime.sql"
+  echo
+  cat "$HERE/0007_security.sql"
+  echo
+  cat "$HERE/0003_storage.sql"
   echo
   cat "$HERE/0002_seed.sql"
 } > "$HERE/apply.sql"

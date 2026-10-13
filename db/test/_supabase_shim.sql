@@ -30,3 +30,23 @@ alter default privileges in schema public grant all on sequences to anon, authen
 -- which a test can easily mistake for the policy correctly denying something.
 grant usage on schema auth to anon, authenticated;
 grant select on auth.users to anon, authenticated;
+
+-- A stand-in for the parts of Supabase Storage that 0003_storage.sql touches,
+-- so the one-paste bundle can be run end to end on a laptop before it is
+-- pasted anywhere. Real Supabase has all of this already.
+create schema if not exists storage;
+create table if not exists storage.buckets (
+  id text primary key, name text, public boolean,
+  file_size_limit bigint, allowed_mime_types text[]
+);
+create table if not exists storage.objects (
+  id uuid primary key default gen_random_uuid(),
+  bucket_id text references storage.buckets(id),
+  name text, owner uuid
+);
+alter table storage.objects enable row level security;
+create or replace function storage.foldername(n text)
+returns text[] language sql immutable as $$ select string_to_array(n, '/') $$;
+grant usage on schema storage to anon, authenticated;
+grant select, insert, update, delete on storage.objects to anon, authenticated;
+grant select on storage.buckets to anon, authenticated;
