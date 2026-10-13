@@ -29,6 +29,8 @@ HDR
   echo
   cat "$HERE/0005_fulfilment.sql"
   echo
+  cat "$HERE/0006_realtime.sql"
+  echo
   cat "$HERE/0002_seed.sql"
 } > "$HERE/apply.sql"
 echo "wrote db/apply.sql ($(wc -l < "$HERE/apply.sql") lines)"
