@@ -7,6 +7,7 @@ import '../../core/providers/orders_provider.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/app_snack.dart';
+import '../creators/sales_screen.dart' show statusLabel, statusColor;
 
 /// Past and current orders.
 class OrdersScreen extends StatefulWidget {
@@ -166,17 +167,45 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
             ),
           ],
+          // Receipt is the buyer's to confirm once something has actually been
+          // posted. The seller can close their own lines too, for the buyer
+          // who never comes back — but asking first is the better order.
+          if (o.status == OrderStatus.shipped) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    final n = await orders.confirmDelivery(o.id);
+                    if (!mounted) return;
+                    messenger.showSnackBar(SnackBar(
+                      content: Text(n == 0 ? l10n.nothingToConfirm : l10n.receiptConfirmed),
+                      behavior: SnackBarBehavior.floating,
+                    ));
+                  } catch (e) {
+                    if (!mounted) return;
+                    showError(context, e);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.orange,
+                  foregroundColor: AppColors.dark,
+                ),
+                child: Text(l10n.confirmReceipt,
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  (String, Color) _status(OrderStatus s, AppLocalizations l10n) => switch (s) {
-        OrderStatus.pending => (l10n.paymentPending.toUpperCase(), Colors.amber),
-        OrderStatus.paid => (l10n.orderPlaced.toUpperCase(), AppColors.orange),
-        OrderStatus.shipped => ('EXPÉDIÉE', Colors.blue),
-        OrderStatus.delivered => ('LIVRÉE', Colors.green),
-        OrderStatus.cancelled => ('ANNULÉE', Colors.grey),
-        OrderStatus.refunded => ('REMBOURSÉE', Colors.grey),
-      };
+  // Was six hardcoded French labels, three of which existed nowhere else in
+  // the app, in a project with two locales. Shared with the seller's screen so
+  // one status cannot be called two different things.
+  (String, Color) _status(OrderStatus s, AppLocalizations l10n) =>
+      (statusLabel(s, l10n).toUpperCase(), statusColor(s));
 }

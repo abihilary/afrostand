@@ -137,6 +137,14 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
           if (i.creatorId == creator.id) i,
     ];
     final revenue = myLines.fold(0, (s, i) => s + i.lineTotalXaf);
+    // Only orders that have been paid for are waiting on the seller; an unpaid
+    // one is waiting on the buyer and counting it would be a false queue.
+    final toShip = [
+      for (final o in sales)
+        if (o.status == OrderStatus.paid || o.status == OrderStatus.shipped)
+          for (final i in o.linesFor(creator.id))
+            if (i.fulfilment == Fulfilment.pending) i,
+    ].length;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
@@ -149,24 +157,42 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: AppColors.dark,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(l10n.mySales,
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13)),
-              Text('${formatXaf(revenue)} FCFA',
-                  style: const TextStyle(
-                      color: AppColors.orange,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18)),
-            ],
+        // The revenue card is now the door to the orders behind it. It used to
+        // be a figure and nothing else: a seller could see that something had
+        // sold and had no screen anywhere that let them send it.
+        GestureDetector(
+          onTap: () => context.push(AppRoutes.sales),
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppColors.dark,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.mySales,
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13)),
+                    if (toShip > 0)
+                      Text('$toShip ${l10n.toShip.toLowerCase()}',
+                          style: const TextStyle(
+                              color: AppColors.orange,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11)),
+                  ],
+                ),
+                const Spacer(),
+                Text('${formatXaf(revenue)} FCFA',
+                    style: const TextStyle(
+                        color: AppColors.orange,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18)),
+                const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 24),

@@ -330,6 +330,19 @@ class PaymentMethod {
 
 enum OrderStatus { pending, paid, shipped, delivered, cancelled, refunded }
 
+/// Where one line of an order has got to.
+///
+/// Per line and not per order, because an order can hold goods from several
+/// shops: one can have posted theirs while another has not. `orders.status` is
+/// derived from these by a trigger, so the buyer still reads one figure.
+enum Fulfilment { pending, shipped, delivered }
+
+Fulfilment _fulfilment(Object? v) => switch (v?.toString()) {
+      'shipped' => Fulfilment.shipped,
+      'delivered' => Fulfilment.delivered,
+      _ => Fulfilment.pending,
+    };
+
 OrderStatus _orderStatus(Object? v) => switch (v?.toString()) {
       'paid' => OrderStatus.paid,
       'shipped' => OrderStatus.shipped,
@@ -351,6 +364,10 @@ class OrderItem {
   final int qty;
   final String size;
   final String color;
+  final Fulfilment fulfilment;
+  final String? trackingRef;
+  final DateTime? shippedAt;
+  final DateTime? deliveredAt;
 
   const OrderItem({
     required this.id,
@@ -362,6 +379,10 @@ class OrderItem {
     this.imageUrl,
     this.size = '',
     this.color = '',
+    this.fulfilment = Fulfilment.pending,
+    this.trackingRef,
+    this.shippedAt,
+    this.deliveredAt,
   });
 
   int get lineTotalXaf => unitPriceXaf * qty;
@@ -376,6 +397,10 @@ class OrderItem {
         qty: _asInt(j['qty'], 1),
         size: _asString(j['size']) ?? '',
         color: _asString(j['color']) ?? '',
+        fulfilment: _fulfilment(j['fulfilment']),
+        trackingRef: _asString(j['tracking_ref']),
+        shippedAt: _asDate(j['shipped_at']),
+        deliveredAt: _asDate(j['delivered_at']),
       );
 }
 
@@ -404,6 +429,11 @@ class Order {
 
   int get itemCount => items.fold(0, (s, i) => s + i.qty);
   String get totalLabel => formatXaf(totalXaf);
+
+  /// The lines belonging to one shop. A seller's screen must never show, count
+  /// or total another shop's goods, even inside an order they share.
+  List<OrderItem> linesFor(String creatorId) =>
+      items.where((i) => i.creatorId == creatorId).toList();
 
   factory Order.fromJson(Map<String, dynamic> j) => Order(
         id: j['id'].toString(),

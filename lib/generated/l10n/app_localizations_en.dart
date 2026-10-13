@@ -529,4 +529,77 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentMethods => 'Payment methods';
+
+  @override
+  String get statusPending => 'Awaiting payment';
+
+  @override
+  String get statusPaid => 'Paid';
+
+  @override
+  String get statusShipped => 'Sent';
+
+  @override
+  String get statusDelivered => 'Delivered';
+
+  @override
+  String get statusCancelled => 'Cancelled';
+
+  @override
+  String get statusRefunded => 'Refunded';
+
+  @override
+  String get toShip => 'To send';
+
+  @override
+  String get markShipped => 'Mark as sent';
+
+  @override
+  String get markDelivered => 'Mark as delivered';
+
+  @override
+  String get confirmReceipt => 'Confirm receipt';
+
+  @override
+  String get trackingOptional => 'Tracking reference (optional)';
+
+  @override
+  String trackingIs(String ref) {
+    return 'Tracking: $ref';
+  }
+
+  @override
+  String sentLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items marked as sent',
+      one: '1 item marked as sent',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nothingToSend => 'Nothing of yours left to send here';
+
+  @override
+  String get nothingToConfirm => 'Nothing has been sent yet';
+
+  @override
+  String get receiptConfirmed => 'Thank you — receipt confirmed';
+
+  @override
+  String get noSales => 'No orders yet';
+
+  @override
+  String get salesTitle => 'Orders received';
+
+  @override
+  String get yourLines => 'Your items in this order';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get confirm => 'Confirm';
 }

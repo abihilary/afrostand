@@ -22,6 +22,15 @@ class OrdersProvider extends ChangeNotifier with Loadable {
   Order? _lastOrder;
 
   List<Order> get orders => _orders;
+
+  /// Orders containing at least one of this shop's lines.
+  ///
+  /// The RLS policy returns an order if you bought it *or* sold into it, so a
+  /// seller who also shops here would otherwise see their own purchases listed
+  /// as sales, with nothing in them to fulfil.
+  List<Order> salesFor(String creatorId) =>
+      _sales.where((o) => o.linesFor(creatorId).isNotEmpty).toList();
+
   List<Order> get sales => _sales;
 
   /// The order the success screen shows. Held here rather than passed through
@@ -98,5 +107,33 @@ class OrdersProvider extends ChangeNotifier with Loadable {
     await Supabase.instance.client.rpc('cancel_my_order', params: {'p_order_id': orderId});
     _orders = await _repo.orders();
     notifyListeners();
+  }
+
+  // ── Fulfilment ───────────────────────────────────────────────────────────
+  //
+  // Each returns how many lines moved so the caller can say something true.
+  // Reloading afterwards is not a nicety: orders.status is derived from the
+  // lines by a trigger, so the figure the screen is showing is stale the
+  // moment one of these succeeds.
+
+  Future<int> markShipped(String orderId, {String? tracking}) async {
+    final n = await _repo.markShipped(orderId, tracking: tracking);
+    _sales = await _repo.salesForMyShop();
+    notifyListeners();
+    return n;
+  }
+
+  Future<int> markDelivered(String orderId) async {
+    final n = await _repo.markDelivered(orderId);
+    _sales = await _repo.salesForMyShop();
+    notifyListeners();
+    return n;
+  }
+
+  Future<int> confirmDelivery(String orderId) async {
+    final n = await _repo.confirmDelivery(orderId);
+    _orders = await _repo.orders();
+    notifyListeners();
+    return n;
   }
 }

@@ -1123,6 +1123,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment methods'**
   String get paymentMethods;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting payment'**
+  String get statusPending;
+
+  /// No description provided for @statusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get statusPaid;
+
+  /// No description provided for @statusShipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get statusShipped;
+
+  /// No description provided for @statusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get statusDelivered;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get statusCancelled;
+
+  /// No description provided for @statusRefunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get statusRefunded;
+
+  /// No description provided for @toShip.
+  ///
+  /// In en, this message translates to:
+  /// **'To send'**
+  String get toShip;
+
+  /// No description provided for @markShipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as sent'**
+  String get markShipped;
+
+  /// No description provided for @markDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as delivered'**
+  String get markDelivered;
+
+  /// No description provided for @confirmReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm receipt'**
+  String get confirmReceipt;
+
+  /// No description provided for @trackingOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking reference (optional)'**
+  String get trackingOptional;
+
+  /// No description provided for @trackingIs.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking: {ref}'**
+  String trackingIs(String ref);
+
+  /// No description provided for @sentLines.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item marked as sent} other{{count} items marked as sent}}'**
+  String sentLines(int count);
+
+  /// No description provided for @nothingToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing of yours left to send here'**
+  String get nothingToSend;
+
+  /// No description provided for @nothingToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has been sent yet'**
+  String get nothingToConfirm;
+
+  /// No description provided for @receiptConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you — receipt confirmed'**
+  String get receiptConfirmed;
+
+  /// No description provided for @noSales.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders yet'**
+  String get noSales;
+
+  /// No description provided for @salesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders received'**
+  String get salesTitle;
+
+  /// No description provided for @yourLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Your items in this order'**
+  String get yourLines;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
 }
 
 class _AppLocalizationsDelegate

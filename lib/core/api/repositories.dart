@@ -340,6 +340,37 @@ class OrdersRepository {
         .order('created_at', ascending: false);
     return _rows(res).map(Order.fromJson).toList();
   }
+
+  // ── Fulfilment ───────────────────────────────────────────────────────────
+  //
+  // All three return the number of lines that moved. An UPDATE matching
+  // nothing succeeds, so without a count a screen cannot tell "posted" from
+  // "there was nothing of yours in this order" and will cheerfully report the
+  // wrong one.
+
+  /// Mark the caller's own lines in this order as sent. Other shops' lines in
+  /// the same order are not the caller's to move, and the function will not.
+  Future<int> markShipped(String orderId, {String? tracking}) async {
+    final res = await _db.rpc('seller_mark_shipped', params: {
+      'p_order_id': orderId,
+      'p_tracking': tracking,
+    });
+    return (res as num?)?.toInt() ?? 0;
+  }
+
+  /// For when the buyer never comes back to confirm. Only closes lines the
+  /// caller has already shipped.
+  Future<int> markDelivered(String orderId) async {
+    final res = await _db.rpc('seller_mark_delivered', params: {'p_order_id': orderId});
+    return (res as num?)?.toInt() ?? 0;
+  }
+
+  /// The buyer confirming receipt, across every shop in the order — but only
+  /// for what was actually posted.
+  Future<int> confirmDelivery(String orderId) async {
+    final res = await _db.rpc('buyer_confirm_delivery', params: {'p_order_id': orderId});
+    return (res as num?)?.toInt() ?? 0;
+  }
 }
 
 // ───────────────────────────────────────────────────────────────────────────

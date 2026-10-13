@@ -183,5 +183,40 @@
   "uploadingImage": "Uploading the photo...",
   "priceLabel": "Price (FCFA)",
   "productName": "Item name",
-  "paymentMethods": "Payment methods"
+  "paymentMethods": "Payment methods",
+  "statusPending": "Awaiting payment",
+  "statusPaid": "Paid",
+  "statusShipped": "Sent",
+  "statusDelivered": "Delivered",
+  "statusCancelled": "Cancelled",
+  "statusRefunded": "Refunded",
+  "toShip": "To send",
+  "markShipped": "Mark as sent",
+  "markDelivered": "Mark as delivered",
+  "confirmReceipt": "Confirm receipt",
+  "trackingOptional": "Tracking reference (optional)",
+  "trackingIs": "Tracking: {ref}",
+  "@trackingIs": {
+    "placeholders": {
+      "ref": {
+        "type": "String"
+      }
+    }
+  },
+  "sentLines": "{count, plural, =1{1 item marked as sent} other{{count} items marked as sent}}",
+  "@sentLines": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nothingToSend": "Nothing of yours left to send here",
+  "nothingToConfirm": "Nothing has been sent yet",
+  "receiptConfirmed": "Thank you — receipt confirmed",
+  "noSales": "No orders yet",
+  "salesTitle": "Orders received",
+  "yourLines": "Your items in this order",
+  "cancel": "Cancel",
+  "confirm": "Confirm"
 }

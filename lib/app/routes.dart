@@ -27,6 +27,7 @@ import '../features/profile/payment_methods_screen.dart';
 import '../features/profile/followed_creators_screen.dart';
 import '../features/creators/creator_profile_screen.dart';
 import '../features/creators/creator_dashboard_screen.dart';
+import '../features/creators/sales_screen.dart';
 import '../features/creators/add_product_screen.dart';
 import '../features/creators/edit_creator_profile_screen.dart';
 import '../features/search/search_filter_screen.dart';
@@ -52,6 +53,7 @@ class AppRoutes {
   static const orderSuccess = '/order-success';
   static const threads = '/messages';
   static const creatorDashboard = '/creator-dashboard';
+  static const sales = '/sales';
   static const addProduct = '/add-product';
   static const editCreatorProfile = '/edit-creator-profile';
   static const searchFilter = '/search-filter';
@@ -182,6 +184,7 @@ GoRouter createRouter({required AppSettings settings, required AuthProvider auth
       ),
 
       GoRoute(path: AppRoutes.creatorDashboard, builder: (c, s) => const CreatorDashboardScreen()),
+      GoRoute(path: AppRoutes.sales, builder: (c, s) => const SalesScreen()),
       GoRoute(path: AppRoutes.addProduct, builder: (c, s) => const AddProductScreen()),
       GoRoute(path: AppRoutes.editCreatorProfile, builder: (c, s) => const EditCreatorProfileScreen()),
       GoRoute(path: AppRoutes.searchFilter, builder: (c, s) => const SearchFilterScreen()),

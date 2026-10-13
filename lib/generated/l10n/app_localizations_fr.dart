@@ -531,4 +531,77 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get paymentMethods => 'Moyens de paiement';
+
+  @override
+  String get statusPending => 'En attente de paiement';
+
+  @override
+  String get statusPaid => 'Payée';
+
+  @override
+  String get statusShipped => 'Expédiée';
+
+  @override
+  String get statusDelivered => 'Livrée';
+
+  @override
+  String get statusCancelled => 'Annulée';
+
+  @override
+  String get statusRefunded => 'Remboursée';
+
+  @override
+  String get toShip => 'À envoyer';
+
+  @override
+  String get markShipped => 'Marquer comme envoyé';
+
+  @override
+  String get markDelivered => 'Marquer comme livré';
+
+  @override
+  String get confirmReceipt => 'Confirmer la réception';
+
+  @override
+  String get trackingOptional => 'Référence de suivi (facultatif)';
+
+  @override
+  String trackingIs(String ref) {
+    return 'Suivi : $ref';
+  }
+
+  @override
+  String sentLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count articles marqués comme envoyés',
+      one: '1 article marqué comme envoyé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get nothingToSend => 'Plus rien à envoyer de votre part ici';
+
+  @override
+  String get nothingToConfirm => 'Rien n\'a encore été envoyé';
+
+  @override
+  String get receiptConfirmed => 'Merci — réception confirmée';
+
+  @override
+  String get noSales => 'Aucune commande pour le moment';
+
+  @override
+  String get salesTitle => 'Commandes reçues';
+
+  @override
+  String get yourLines => 'Vos articles dans cette commande';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get confirm => 'Confirmer';
 }
