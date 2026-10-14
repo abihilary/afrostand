@@ -204,5 +204,16 @@
   "salesTitle": "Commandes reçues",
   "yourLines": "Vos articles dans cette commande",
   "cancel": "Annuler",
-  "confirm": "Confirmer"
+  "confirm": "Confirmer",
+  "messages": "Messages",
+  "guestLabel": "INVITÉ",
+  "noEmail": "Pas d'adresse e-mail",
+  "editProfile": "Modifier le profil",
+  "yourName": "Votre nom",
+  "phoneNumber": "Numéro de téléphone",
+  "justNow": "à l'instant",
+  "minutesShort": "{n} min",
+  "hoursShort": "{n} h",
+  "daysShort": "{n} j",
+  "someone": "Quelqu'un"
 }

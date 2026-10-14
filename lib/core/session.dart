@@ -9,6 +9,7 @@ import 'providers/shop_provider.dart';
 import 'providers/orders_provider.dart';
 import 'providers/social_provider.dart';
 import 'providers/catalog_provider.dart';
+import 'providers/chat_provider.dart';
 
 /// Loads what belongs to the signed-in person, and drops it when they leave.
 ///
@@ -55,12 +56,14 @@ class _SessionLoaderState extends State<SessionLoader> {
     final shop = context.read<ShopProvider>();
     final orders = context.read<OrdersProvider>();
     final social = context.read<SocialProvider>();
+    final chat = context.read<ChatProvider>();
 
     if (uid == null) {
       profile.clearLocal();
       shop.clearLocal();
       orders.clearLocal();
       social.clearLocal();
+      chat.clearLocal();
       return;
     }
 
@@ -73,7 +76,7 @@ class _SessionLoaderState extends State<SessionLoader> {
       if (me != null) {
         context.read<AppSettings>().adoptFromProfile(locale: me.locale, theme: me.theme);
       }
-      await Future.wait([shop.load(), orders.load(), social.loadFeed()]);
+      await Future.wait([shop.load(), orders.load(), social.loadFeed(), chat.load()]);
     }();
   }
 

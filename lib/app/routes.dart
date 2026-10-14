@@ -79,7 +79,17 @@ class AppRoutes {
 /// has a `using (true)` select policy. Making people sign up before they can
 /// see a single product is how a young marketplace gets no customers.
 /// Everything that reads or writes somebody's own rows is not on this list.
-const _publicPrefixes = <String>[
+// Split into exact paths and prefixes, which is not tidiness. The single list
+// this replaces was matched with `location.startsWith(p)` and contained
+// AppRoutes.splash — which is '/'. Every path starts with '/', so _isPublic
+// answered true for everything and the redirect below has never guarded a
+// single route: a signed-out visitor could open Orders, Wishlist, Addresses
+// and Checkout and be shown empty screens as though they were their own.
+//
+// Nothing leaked — every one of those reads is owner-scoped in Postgres and
+// returned nothing — but "you have no orders" and "please sign in" are
+// different sentences, and the app was saying the wrong one.
+const _publicExact = <String>[
   AppRoutes.splash,
   AppRoutes.onboarding,
   AppRoutes.welcome,
@@ -89,11 +99,19 @@ const _publicPrefixes = <String>[
   AppRoutes.home,
   AppRoutes.search,
   AppRoutes.creators,
+  // Deliberately public: the profile tab has a guest state with a Sign in
+  // button on it, which is friendlier than bouncing somebody browsing a shop
+  // into a login form. Everything BEHIND it is guarded.
+  AppRoutes.profile,
+];
+
+const _publicPrefixes = <String>[
+  '/home/',    // product/:id and category/:slug
   '/creator/',
 ];
 
 bool _isPublic(String location) =>
-    _publicPrefixes.any((p) => location == p || location.startsWith(p));
+    _publicExact.contains(location) || _publicPrefixes.any(location.startsWith);
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 

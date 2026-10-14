@@ -13,6 +13,7 @@ import '../../shared/models/models.dart';
 import '../../generated/l10n/app_localizations.dart';
 import '../../shared/widgets/animated_pressable.dart';
 import 'widgets/settings_modal.dart';
+import '../../core/providers/chat_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -38,8 +39,20 @@ class ProfileScreen extends StatelessWidget {
     final orders = context.watch<OrdersProvider>();
     final social = context.watch<SocialProvider>();
 
-    final fullName = user?.userMetadata?['full_name'] ?? user?.email?.split('@').first ?? 'Aminata Diallo';
-    final email = user?.email ?? 'aminata@email.com • Dakar';
+    final chat = context.watch<ChatProvider>();
+
+    // Was 'Aminata Diallo', and under it the literal 'aminata@email.com •
+    // Dakar'. The home screen had this fixed; this screen did not, so your own
+    // profile page greeted you as somebody else and printed a stranger's
+    // address. The profile row is the first source now — it is the one the
+    // account can actually change — then the sign-up metadata, then the email,
+    // and only then an honest placeholder.
+    final fullName = profile.me?.fullName?.trim().isNotEmpty == true
+        ? profile.me!.fullName!.trim()
+        : (user?.userMetadata?['full_name'] as String?)?.trim().isNotEmpty == true
+            ? (user!.userMetadata!['full_name'] as String).trim()
+            : user?.email?.split('@').first ?? l10n.guestLabel;
+    final email = user?.email ?? l10n.noEmail;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -106,7 +119,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                                 child: Text(
                                   !auth.isAuthenticated
-                                      ? 'GUEST'
+                                      ? l10n.guestLabel
                                       : switch (profile.creatorStatus) {
                                           CreatorStatus.approved =>
                                             l10n.myShop.toUpperCase(),
@@ -126,7 +139,8 @@ class ProfileScreen extends StatelessWidget {
                               if (!auth.isAuthenticated)
                                 TextButton(
                                   onPressed: () => context.push(AppRoutes.welcome),
-                                  child: const Text('Sign In', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  child: Text(l10n.signIn,
+                                      style: const TextStyle(fontWeight: FontWeight.bold)),
                                 ),
                             ],
                           ),
@@ -139,9 +153,9 @@ class ProfileScreen extends StatelessWidget {
                 Row(
                   children: [
                     _profileStat(context, '${orders.orders.length}', l10n.orders),
-                    _profileStat(context, '${shop.wishlist.length}', l10n.favorites),
+                    _profileStat(context, '${shop.wishlistCount}', l10n.favorites),
                     _profileStat(
-                        context, '${social.followedCreators.length}', l10n.followedCreators),
+                        context, '${social.followedCount}', l10n.followedCreators),
                   ],
                 ).animate().fade(delay: 200.ms).slideY(begin: 0.2),
               ],
@@ -155,11 +169,18 @@ class ProfileScreen extends StatelessWidget {
                 _menuItem(context, Icons.storefront_rounded, l10n.myShop,
                     profile.canSell ? '${profile.myProducts.length}' : l10n.becomeCreator, 0, onTap: () => context.push(AppRoutes.creatorDashboard)),
                 _menuItem(context, Icons.shopping_bag_outlined, l10n.myOrders, '${orders.orders.length}', 1, onTap: () => context.push(AppRoutes.orders)),
-                _menuItem(context, Icons.favorite_outline_rounded, l10n.wishlist, '${shop.wishlist.length} ${l10n.items}', 2, onTap: () => context.push(AppRoutes.wishlist)),
+                _menuItem(context, Icons.favorite_outline_rounded, l10n.wishlist, '${shop.wishlistCount} ${l10n.items}', 2, onTap: () => context.push(AppRoutes.wishlist)),
                 _menuItem(context, Icons.location_on_outlined, l10n.addresses, '${shop.addresses.length}', 3, onTap: () => context.push(AppRoutes.addresses)),
                 _menuItem(context, Icons.credit_card_rounded, l10n.payments, '${shop.paymentMethods.length}', 4, onTap: () => context.push(AppRoutes.paymentMethods)),
-                _menuItem(context, Icons.grid_view_rounded, l10n.followedCreators, '${social.followedCreators.length}', 5, onTap: () => context.push(AppRoutes.followedCreators)),
-                _menuItem(context, Icons.settings_outlined, l10n.settings, '', 6, onTap: () => _showSettings(context)),
+                // /messages was routed from the day the inbox was written and
+                // nothing in the app ever navigated to it. You could be taken
+                // into a conversation from a shop page and, once you left it,
+                // had no way back to it at all.
+                _menuItem(context, Icons.chat_bubble_outline_rounded, l10n.messages,
+                    chat.unreadTotal == 0 ? '' : '${chat.unreadTotal}', 5,
+                    onTap: () => context.push(AppRoutes.threads)),
+                _menuItem(context, Icons.grid_view_rounded, l10n.followedCreators, '${social.followedCount}', 6, onTap: () => context.push(AppRoutes.followedCreators)),
+                _menuItem(context, Icons.settings_outlined, l10n.settings, '', 7, onTap: () => _showSettings(context)),
               ],
             ),
           ),

@@ -88,7 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: theme.scaffoldBackgroundColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(AppRoutes.home),
         ),
       ),
       body: SingleChildScrollView(

@@ -487,6 +487,20 @@ class ChatRepository {
     if (uid == null) return [];
     final res = await _db.from('threads').select().order('last_message_at', ascending: false);
 
+    // How many messages in each thread are waiting on me. One query for the
+    // whole inbox rather than one per thread: RLS already limits `messages` to
+    // threads I am in, so the filter is just "not mine, not yet read".
+    final unreadRows = await _db
+        .from('messages')
+        .select('thread_id')
+        .neq('sender_id', uid)
+        .isFilter('read_at', null);
+    final unreadByThread = <String, int>{};
+    for (final r in _rows(unreadRows)) {
+      final t = r['thread_id'].toString();
+      unreadByThread[t] = (unreadByThread[t] ?? 0) + 1;
+    }
+
     final out = <ChatThread>[];
     for (final r in _rows(res)) {
       final otherId = r['a_id'].toString() == uid ? r['b_id'].toString() : r['a_id'].toString();
@@ -510,6 +524,7 @@ class ChatRepository {
         other: other == null ? null : Profile.fromJson(other),
         lastMessageAt: DateTime.tryParse(r['last_message_at']?.toString() ?? ''),
         lastBody: last?['body']?.toString(),
+        unread: unreadByThread[r['id'].toString()] ?? 0,
       ));
     }
     return out;

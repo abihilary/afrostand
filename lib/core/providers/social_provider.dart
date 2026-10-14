@@ -15,6 +15,11 @@ class SocialProvider extends ChangeNotifier with Loadable {
   List<Creator> get followedCreators => _followed;
   bool isFollowing(String creatorId) => _followedIds.contains(creatorId);
 
+  /// Same reasoning as ShopProvider.wishlistCount: loadFeed() fills the id set
+  /// on sign-in, loadFollowed() fills the list and only its own screen calls
+  /// it.
+  int get followedCount => _followedIds.length;
+
   Future<void> loadFeed() => guard(() async {
         _feed = await _repo.feed();
         _followedIds = await _repo.followedCreatorIds();

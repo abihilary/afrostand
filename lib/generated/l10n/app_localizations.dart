@@ -1249,6 +1249,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm'**
   String get confirm;
+
+  /// No description provided for @messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messages;
+
+  /// No description provided for @guestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GUEST'**
+  String get guestLabel;
+
+  /// No description provided for @noEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'No email address'**
+  String get noEmail;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile'**
+  String get editProfile;
+
+  /// No description provided for @yourName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get yourName;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get phoneNumber;
+
+  /// No description provided for @justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get justNow;
+
+  /// No description provided for @minutesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}m'**
+  String minutesShort(int n);
+
+  /// No description provided for @hoursShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}h'**
+  String hoursShort(int n);
+
+  /// No description provided for @daysShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}d'**
+  String daysShort(int n);
+
+  /// No description provided for @someone.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get someone;
 }
 
 class _AppLocalizationsDelegate

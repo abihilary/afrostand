@@ -114,7 +114,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
             child: Row(
               children: [
                 AnimatedPressable(
-                  onTap: () => context.pop(),
+                  onTap: () => context.canPop() ? context.pop() : context.go(AppRoutes.home),
                   child: Container(
                     width: 44,
                     height: 44,

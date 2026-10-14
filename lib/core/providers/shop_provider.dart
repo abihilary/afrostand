@@ -57,6 +57,13 @@ class ShopProvider extends ChangeNotifier with Loadable {
 
   bool isWishlisted(String productId) => _wishlistIds.contains(productId);
 
+  /// Counted from the id set, which load() fills on sign-in — not from the
+  /// product list, which only loadWishlist() fills and only the wishlist
+  /// screen calls. The profile read the list, so it showed 0 favourites until
+  /// you opened the wishlist, at which point the number appeared out of
+  /// nowhere.
+  int get wishlistCount => _wishlistIds.length;
+
   String? _selectedAddressId;
 
   /// Carried between checkout and payment, which are two screens and one

@@ -218,5 +218,37 @@
   "salesTitle": "Orders received",
   "yourLines": "Your items in this order",
   "cancel": "Cancel",
-  "confirm": "Confirm"
+  "confirm": "Confirm",
+  "messages": "Messages",
+  "guestLabel": "GUEST",
+  "noEmail": "No email address",
+  "editProfile": "Edit profile",
+  "yourName": "Your name",
+  "phoneNumber": "Phone number",
+  "justNow": "now",
+  "minutesShort": "{n}m",
+  "@minutesShort": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursShort": "{n}h",
+  "@hoursShort": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "daysShort": "{n}d",
+  "@daysShort": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "someone": "Someone"
 }

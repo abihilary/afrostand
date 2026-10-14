@@ -10,6 +10,7 @@ import 'core/providers/shop_provider.dart';
 import 'core/providers/orders_provider.dart';
 import 'core/providers/social_provider.dart';
 import 'core/providers/profile_provider.dart';
+import 'core/providers/chat_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +36,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => OrdersProvider()),
         ChangeNotifierProvider(create: (_) => SocialProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: const AfrostandApp(),
     ),

@@ -604,4 +604,43 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get confirm => 'Confirmer';
+
+  @override
+  String get messages => 'Messages';
+
+  @override
+  String get guestLabel => 'INVITÉ';
+
+  @override
+  String get noEmail => 'Pas d\'adresse e-mail';
+
+  @override
+  String get editProfile => 'Modifier le profil';
+
+  @override
+  String get yourName => 'Votre nom';
+
+  @override
+  String get phoneNumber => 'Numéro de téléphone';
+
+  @override
+  String get justNow => 'à l\'instant';
+
+  @override
+  String minutesShort(int n) {
+    return '$n min';
+  }
+
+  @override
+  String hoursShort(int n) {
+    return '$n h';
+  }
+
+  @override
+  String daysShort(int n) {
+    return '$n j';
+  }
+
+  @override
+  String get someone => 'Quelqu\'un';
 }

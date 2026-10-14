@@ -602,4 +602,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirm => 'Confirm';
+
+  @override
+  String get messages => 'Messages';
+
+  @override
+  String get guestLabel => 'GUEST';
+
+  @override
+  String get noEmail => 'No email address';
+
+  @override
+  String get editProfile => 'Edit profile';
+
+  @override
+  String get yourName => 'Your name';
+
+  @override
+  String get phoneNumber => 'Phone number';
+
+  @override
+  String get justNow => 'now';
+
+  @override
+  String minutesShort(int n) {
+    return '${n}m';
+  }
+
+  @override
+  String hoursShort(int n) {
+    return '${n}h';
+  }
+
+  @override
+  String daysShort(int n) {
+    return '${n}d';
+  }
+
+  @override
+  String get someone => 'Someone';
 }
